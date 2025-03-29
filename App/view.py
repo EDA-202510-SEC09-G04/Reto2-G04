@@ -1,5 +1,5 @@
 import sys
-
+from App import logic
 
 def new_logic():
     """
@@ -19,6 +19,7 @@ def print_menu():
     print("7- Ejecutar Requerimiento 6")
     print("8- Ejecutar Requerimiento 7")
     print("9- Ejecutar Requerimiento 8 (Bono)")
+    print("10- Probar ordenamiento quick_sort (de prueba)")
     print("0- Salir")
 
 def load_data(control):
@@ -99,7 +100,6 @@ def print_req_8(control):
     # TODO: Imprimir el resultado del requerimiento 8
     pass
 
-
 # Se crea la lógica asociado a la vista
 control = new_logic()
 
@@ -116,6 +116,8 @@ def main():
         if int(inputs) == 1:
             print("Cargando información de los archivos ....\n")
             data = load_data(control)
+        elif int(inputs) == 10:
+            logic.prueba_ordenamiento()
         elif int(inputs) == 2:
             print_req_1(control)
 

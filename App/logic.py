@@ -5,7 +5,7 @@ import sys
 import pprint
 from tabulate import tabulate
 from datetime import datetime
-
+from DataStructures.List import array_list as lt
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 defualt_limit = 1000
@@ -25,6 +25,28 @@ def delta_time(start, end):
     """
     elapsed = float(end - start)
     return elapsed
+
+def prueba_ordenamiento():
+    lista = lt.new_list()
+
+    lt.add_last(lista, {'load_time': '2018-01-01', 'state_name': 'A'})
+    lt.add_last(lista, {'load_time': '2020-01-01', 'state_name': 'B'})
+    lt.add_last(lista, {'load_time': '2019-01-01', 'state_name': 'C'})
+
+    def criterio_fecha_desc(a, b):
+        f1 = datetime.strptime(a['load_time'], "%Y-%m-%d")
+        f2 = datetime.strptime(b['load_time'], "%Y-%m-%d")
+        return f1 > f2  # más reciente primero
+
+    print("\n🔽 Lista ANTES de ordenar:")
+    for i in range(lt.size(lista)):
+        print(lt.get_element(lista, i))
+
+    lt.quick_sort(lista, criterio_fecha_desc)
+
+    print("\n✅ Lista DESPUÉS de ordenar por load_time descendente:")
+    for i in range(lt.size(lista)):
+        print(lt.get_element(lista, i))
 
 
 

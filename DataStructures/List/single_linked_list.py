@@ -192,19 +192,19 @@ def change_info(my_list, pos, new_info):
     return my_list
 
 def exchange(my_list, pos_1, pos_2):
-    if (pos_1 < 0 or pos_1 > my_list['size'] or
-        pos_2 < 0 or pos_2 > my_list['size']):
-        raise Exception('list index out of range')
-    
     if pos_1 == pos_2:
         return my_list
 
-    node_1 = get_element(my_list,pos_1)
-    node_2 = get_element(my_list,pos_2)
+    info1 = get_element(my_list, pos_1)
+    info2 = get_element(my_list, pos_2)
 
-    node_1['info'], node_2['info'] = node_2['info'], node_1['info']
+    change_info(my_list, pos_1, info2)
+    change_info(my_list, pos_2, info1)
 
     return my_list
+
+
+    
 
 def sub_list(my_list, pos_i, num_elements):
     if pos_i < 0 or pos_i >= size(my_list):
@@ -224,3 +224,58 @@ def sub_list(my_list, pos_i, num_elements):
     sublist['last'] = node_2
         
     return sublist
+def partition(my_list, lo, hi, sort_crit):
+    pivot = get_element(my_list, hi)
+    i = lo
+
+    for j in range(lo, hi):
+        if sort_crit(get_element(my_list, j), pivot):
+            exchange(my_list, i, j)
+            i += 1
+
+    exchange(my_list, i, hi)
+    return i
+
+def shell_sort(my_list, sort_crit):
+    if size(my_list) > 1:
+        n = size(my_list)
+        h = 1
+        while h < n/2:  
+            h = 2*h + 1
+        while (h >= 1):
+            for i in range(h, n):
+                j = i
+                while (j >= h) and sort_crit(
+                                    get_element(my_list, j),
+                                    get_element(my_list, j-h)):
+                    exchange(my_list, j, j-h)
+                    j -= h
+            h //= 2   
+    return my_list
+
+def insertion_sort(my_list, sort_crit):
+
+    if size(my_list) > 1:
+        n = size(my_list)
+        pos1 = 0
+        while pos1 < n:
+            pos2 = pos1
+            while (pos2 > 0) and (sort_crit(
+                get_element(my_list, pos2), get_element(my_list, pos2-1))):
+                exchange(my_list, pos2, pos2-1)
+                pos2 -= 1
+            pos1 += 1
+    return my_list
+
+def quick_sort(my_list, sort_crit):
+
+    quick_sort_recursive(my_list, 0, size(my_list)-1, sort_crit)
+    return my_list
+
+def quick_sort_recursive(my_list, lo, hi, sort_crit):
+ 
+    if (lo >= hi):
+        return
+    pivot = partition(my_list, lo, hi, sort_crit)
+    quick_sort_recursive(my_list, lo, pivot-1, sort_crit)
+    quick_sort_recursive(my_list, pivot+1, hi, sort_crit)
