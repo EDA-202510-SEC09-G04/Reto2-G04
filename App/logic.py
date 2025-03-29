@@ -1,4 +1,38 @@
 import time
+import os
+import csv
+import sys
+import pprint
+from tabulate import tabulate
+from datetime import datetime
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+
+defualt_limit = 1000
+sys.setrecursionlimit(defualt_limit*10)
+csv.field_size_limit(2147483647)
+
+def get_time():
+    """
+    devuelve el instante tiempo de procesamiento en milisegundos
+    """
+    return float(time.perf_counter()*1000)
+
+
+def delta_time(start, end):
+    """
+    devuelve la diferencia entre tiempos de procesamiento muestreados
+    """
+    elapsed = float(end - start)
+    return elapsed
+
+
+
+
+
+
+
+
 
 def new_logic():
     """
