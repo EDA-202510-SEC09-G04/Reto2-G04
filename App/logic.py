@@ -1,3 +1,4 @@
+import random
 import time
 import os
 import csv
@@ -5,7 +6,13 @@ import sys
 import pprint
 from tabulate import tabulate
 from datetime import datetime
+from DataStructures.Map import map_separate_chaining as msc
 from DataStructures.List import array_list as lt
+from DataStructures.List import single_linked_list as slist
+from DataStructures.Map import map_entry as me
+from DataStructures.Map import map_functions as mf
+from DataStructures.Utils import error as error
+
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 defualt_limit = 1000
@@ -161,3 +168,4 @@ def delta_time(start, end):
     """
     elapsed = float(end - start)
     return elapsed
+

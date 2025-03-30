@@ -47,23 +47,13 @@ def add_first(my_list,element):
 
     return my_list
 
-def add_last(my_list,element):
-    if my_list['size'] == 0:
-        my_list['elements'] = [None] * 1
+def add_last(my_list, element):
+    if 'elements' not in my_list:
+        my_list['elements'] = []
+        my_list['size'] = 0
     
-    if my_list['size'] == len(my_list['elements']):  
-        new_size = max(1, my_list['size'] * 2)  
-        new_elements = [None] * new_size  
-        
-        for i in range(my_list['size']):
-            new_elements[i] = my_list['elements'][i]
-        
-        my_list['elements'] = new_elements  
-
-    my_list['elements'][my_list['size']] = element 
-    my_list['size'] += 1 
-    
-    return my_list
+    my_list['elements'].append(element)
+    my_list['size'] += 1
 
 def first_element(my_list):
     if size(my_list) == 0:
