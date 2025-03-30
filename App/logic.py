@@ -75,6 +75,7 @@ def new_logic():
     """
     catalog = {
         'registros': msc.new_map(52428, 0.75),  
+        'por_anio': msc.new_map(155, 0.75),  
         'por_departamento': msc.new_map(58, 0.75), 
         'por_producto': msc.new_map(76, 0.75), 
         'por_categoria': msc.new_map(107, 0.75),  
@@ -93,6 +94,7 @@ def load_data(catalog):
     tiempo_inicial = get_time()
     files = data_dir + 'agricultural-20.csv'
     
+    #GENERACION DE TABLA DE HASH GENERAL
     input_file = csv.DictReader(open(files, encoding='utf-8'))
     menor = float('inf')
     mayor = float('-inf')
@@ -102,21 +104,63 @@ def load_data(catalog):
         row["load_time"] = datetime.strptime(row["load_time"], "%Y-%m-%d %H:%M:%S")
         
         year = int(row['year_collection'])
+        departamento = row['state_name']
+        
         menor = min(menor, year)
         mayor = max(mayor, year)
         
         msc.put(catalog['registros'], row['unique_key'], row)
         
+        # GENERACION TABLA POR AÑO
+        if not msc.contains(catalog['por_anio'], year):
+            msc.put(catalog['por_anio'], year, [])
+
+        #get la lista de registros asociada a la llave del año       
+        year_list = msc.get(catalog['por_anio'], year)
+        year_list.append(row)
+        msc.put(catalog['por_anio'], year, year_list)
+        
+        #GENERACION TABLA POR DEPARTAMENTO
+        if not msc.contains(catalog['por_departamento'], departamento):
+            msc.put(catalog['por_departamento'], departamento, [])
+
+        #get la lista de registros asociada a la llave del departamento       
+        dep_list = msc.get(catalog['por_departamento'], departamento)
+        dep_list.append(row)
+        msc.put(catalog['por_departamento'], departamento, dep_list)
+        
     
     tiempo_final = get_time()
     tiempo_total = delta_time(tiempo_inicial, tiempo_final)
     
+    
+    #SORT A PARTIR DEL LOAD TIME DE LA TABLA DE HASH GENERAL
     valores = msc.value_set(catalog['registros'])['elements']
     sorted_records = lt.merge_sort(valores, 'load_time', descending=True, secondary_key='state_name')
     size = catalog['registros']['size']
     
+    #SORT A PARTIR DE LOAD TIME LA TABLA DE AÑOS
+    anio_llaves = msc.key_set(catalog['por_anio'])['elements']
+    for year in anio_llaves:
+        year_list = msc.get(catalog['por_anio'], year)
+        sorted_list = lt.merge_sort(year_list, 'load_time', descending=False, secondary_key='state_name')
+
+        msc.put(catalog['por_anio'], year, sorted_list)
+    
+    #SORT A PARTIR DE LOAD TIME LA TABLA DE DEPARTAMETOS
+    #CUAL ES EL SEGNUDO PARAMETRO PARA EL SORT????? NO ESTA EN LA GUIA BROOO TT por ahora lo dejo como commodity
+
+    dep_llaves = msc.key_set(catalog['por_departamento'])['elements']
+    for dep in dep_llaves:    
+        dep_list = msc.get(catalog['por_departamento'], dep)
+        sorted_list = lt.merge_sort(dep_list, 'load_time', descending=False, secondary_key='commodity')
+        msc.put(catalog['por_departamento'], dep, sorted_list)
+    
+    
     primeros = sorted_records[:5]
     ultimos = sorted_records[-5:]
+
+    
     return catalog, tiempo_total, size, menor, mayor, primeros, ultimos
 
 # Funciones de consulta sobre el catálogo
