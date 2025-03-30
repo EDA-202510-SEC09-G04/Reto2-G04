@@ -107,6 +107,7 @@ def load_data(catalog):
         year = int(row['year_collection'])
         departamento = row['state_name']
         producto = row['commodity']
+        categoria = row['statical_category']
         
         menor = min(menor, year)
         mayor = max(mayor, year)
@@ -169,6 +170,25 @@ def load_data(catalog):
         prod_registros_anio.append(row)
         msc.put(tabla_producto, year, prod_registros_anio) 
         #doble  tabla generada
+        
+        #GENERACION TABLA POR CATEGORIA ESTADISTICA -> AÑO 
+        # Asegurar que el producto existe en la tabla, añadir con el mapa interno
+        if not msc.contains(catalog['por_categoria'], categoria):
+            tabla_interna = msc.new_map(155, 0.75)
+            msc.put(catalog['por_categoria'], categoria, tabla_interna)
+            
+        # acceder a tabla interna de la categoria estadistica
+        tabla_categoria = msc.get(catalog['por_categoria'], producto)
+        #verificar si hay una llave del año en tabla interna
+        if not msc.contains(tabla_categoria, year): 
+            #si no hay una llave con el año, agregar inicializado con una lista vacia para los registros
+            msc.put(tabla_categoria, year, [])
+            
+        # Agregar el registro de categoria a la lista del año
+        stats_registros_anio = msc.get(tabla_categoria, year)
+        stats_registros_anio.append(row)
+        msc.put(tabla_categoria, year, stats_registros_anio) 
+        #doble  tabla generada
     
     tiempo_final = get_time()
     tiempo_total = delta_time(tiempo_inicial, tiempo_final)
@@ -227,6 +247,17 @@ def load_data(catalog):
             registros = msc.get(tabla_prod, year) 
             sorted_records = lt.merge_sort(registros, 'load_time', descending=False, secondary_key='state_name')
             msc.put(tabla_prod, year, sorted_records)  
+    print('Ordenamiento completo\n')
+    
+    print('Iniciando ordenamiento tabla doble categoria - años')
+    #SORT A PARTIR DE LOAD TIME DE LA DOBLE TABLA CATEGORIA AÑO
+    for categoria in msc.key_set(catalog['por_categoria'])['elements']:
+        tabla_categoria = msc.get(catalog['por_categoria'], categoria)
+        
+        for year in msc.key_set(tabla_categoria)['elements']:
+            registros = msc.get(tabla_categoria, year) 
+            sorted_records = lt.merge_sort(registros, 'load_time', descending=False, secondary_key='state_name')
+            msc.put(tabla_categoria, year, sorted_records)  
     print('Ordenamiento completo\n')
     
     
