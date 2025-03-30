@@ -93,7 +93,7 @@ def load_data(catalog):
     Carga los datos del reto
     """
     tiempo_inicial = get_time()
-    files = data_dir + 'agricultural-20.csv'
+    files = data_dir + 'testeo.csv'
     
     #GENERACION DE TABLA DE HASH GENERAL
     input_file = csv.DictReader(open(files, encoding='utf-8'))
@@ -271,6 +271,13 @@ def load_data(catalog):
 
 # Funciones de consulta sobre el catálogo
 
+
+catalogo = new_logic()
+load_data(catalogo)
+
+
+
+
 def get_data(catalog, id):
     """
     Retorna un dato por su ID.
@@ -279,19 +286,72 @@ def get_data(catalog, id):
     pass
 
 
+def req_2(catalog,n,departamento):
+    """
+    Retorna el resultado del requerimiento 1
+    """
+    tiempo_inicial =  get_time()
+    
+    registros , tamanio_registros = ultimos_registros_dep(catalog,n,departamento)
+    
+    tiempo_final = get_time()
+    
+    dif_tiempo = delta_time(tiempo_inicial,tiempo_final)
+    
+    return dif_tiempo, tamanio_registros, registros
+
+
+
+def ultimos_registros_dep(catalog,n,departamento):
+    
+   elementos =  catalog['por_departamento']['table']
+   tamanio = lt.size(elementos)
+   i = 0
+   flag = True
+   registros = None
+   
+   
+   
+   while i < tamanio and flag :
+       
+       
+        el = elementos['elements'][i]
+       
+        if not slist.is_empty(el):
+         
+         primero = slist.first_element(el)
+         
+        
+       
+         if me.get_key(primero['info']) == departamento:
+          
+          valor = me.get_value(primero['info'])
+          registros = valor[:n]
+          #print(el)
+          #print(valor)
+          
+          flag = False
+          
+        i += 1
+          
+    
+    
+   return registros , len(registros)
+          
+          
+print(req_2(catalogo,10,'ARKANSAS'))
+        
+#print(catalogo['por_departamento'])
+           
+           
+           
+    
+
 def req_1(catalog):
     """
     Retorna el resultado del requerimiento 1
     """
     # TODO: Modificar el requerimiento 1
-    pass
-
-
-def req_2(catalog):
-    """
-    Retorna el resultado del requerimiento 2
-    """
-    # TODO: Modificar el requerimiento 2
     pass
 
 
