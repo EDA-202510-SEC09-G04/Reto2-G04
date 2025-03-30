@@ -106,6 +106,7 @@ def load_data(catalog):
         
         year = int(row['year_collection'])
         departamento = row['state_name']
+        producto = row['commodity']
         
         menor = min(menor, year)
         mayor = max(mayor, year)
@@ -151,13 +152,28 @@ def load_data(catalog):
         #doble super tabla generada
         
         #GENERACION TABLA POR PRODUCTO -> AÑO 
-        
-        
+        # Asegurar que el producto existe en la tabla, añadir con el mapa interno
+        if not msc.contains(catalog['por_producto'], producto):
+            tabla_interna = msc.new_map(155, 0.75)
+            msc.put(catalog['por_producto'], producto, tabla_interna)
+            
+        # acceder a tabla interna del producto
+        tabla_producto = msc.get(catalog['por_producto'], producto)
+        #verificar si hay una llave del año en tabla interna
+        if not msc.contains(tabla_producto, year): 
+            #si no hay una llave con el año, agregar inicializado con una lista vacia para los registros
+            msc.put(tabla_producto, year, [])
+            
+        # Agregar el registro de producto a la lista del año
+        prod_registros_anio = msc.get(tabla_producto, year)
+        prod_registros_anio.append(row)
+        msc.put(tabla_producto, year, prod_registros_anio) 
+        #doble  tabla generada
     
     tiempo_final = get_time()
     tiempo_total = delta_time(tiempo_inicial, tiempo_final)
     print('Carga de datos completa en :' + str(tiempo_total))
-    print('Iniciando ordenamiento tabla general')
+    print('\nIniciando ordenamiento tabla general')
     
     #SORT A PARTIR DEL LOAD TIME DE LA TABLA DE HASH GENERAL
     valores = msc.value_set(catalog['registros'])['elements']
@@ -166,7 +182,7 @@ def load_data(catalog):
     primeros = sorted_records[:5]
     ultimos = sorted_records[-5:]
     
-    print('Ordenamiento completo')
+    print('Ordenamiento completo\n')
     
     print('Iniciando ordenamiento tabla de años')
     
@@ -177,7 +193,7 @@ def load_data(catalog):
         sorted_list = lt.merge_sort(year_list, 'load_time', descending=False, secondary_key='state_name')
 
         msc.put(catalog['por_anio'], year, sorted_list)
-    print('Ordenamiento completo')
+    print('Ordenamiento completo\n')
     
     #SORT A PARTIR DE LOAD TIME LA TABLA DE DEPARTAMETOS
     #CUAL ES EL SEGNUDO PARAMETRO PARA EL SORT????? NO ESTA EN LA GUIA BROOO TT por ahora lo dejo como commodity
@@ -187,7 +203,7 @@ def load_data(catalog):
         dep_list = msc.get(catalog['por_departamento'], dep)
         sorted_list = lt.merge_sort(dep_list, 'load_time', descending=False, secondary_key='commodity')
         msc.put(catalog['por_departamento'], dep, sorted_list)
-    print('Ordenamiento completo')
+    print('Ordenamiento completo\n')
     
     print('Iniciando ordenamiento tabla doble departamento - años')
     
@@ -199,7 +215,19 @@ def load_data(catalog):
             registros = msc.get(tabla_dep, year) #tampoco nos dice la guia el segundo criterio de ordenarmiento, en este caso el dep seria invalido
             sorted_records = lt.merge_sort(registros, 'load_time', descending=False, secondary_key='commodity')
             msc.put(tabla_dep, year, sorted_records)  
-    print('Ordenamiento completo')
+    print('Ordenamiento completo\n')
+    
+    print('Iniciando ordenamiento tabla doble producto - años')
+    
+    #SORT A PARTIR DE LOAD TIME DE LA DOBLE TABLA PRODUCTO AÑO
+    for producto in msc.key_set(catalog['por_producto'])['elements']:
+        tabla_prod = msc.get(catalog['por_producto'], producto)
+        
+        for year in msc.key_set(tabla_prod)['elements']:
+            registros = msc.get(tabla_prod, year) 
+            sorted_records = lt.merge_sort(registros, 'load_time', descending=False, secondary_key='state_name')
+            msc.put(tabla_prod, year, sorted_records)  
+    print('Ordenamiento completo\n')
     
     
     
