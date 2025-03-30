@@ -154,7 +154,7 @@ def value_set(map_struct):
 
 def rehash(map_struct):
     try:
-        new_capacity = mf.next_prime(map_struct['capacity'] * 4)
+        new_capacity = mf.next_prime(map_struct['capacity'] * 2)
         new_table = al.new_list()
 
         for _ in range(new_capacity):
