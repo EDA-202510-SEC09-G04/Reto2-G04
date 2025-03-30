@@ -4,6 +4,7 @@ import os
 import csv
 import sys
 import pprint
+import uuid
 from tabulate import tabulate
 from datetime import datetime
 from DataStructures.Map import map_separate_chaining as msc
@@ -14,10 +15,15 @@ from DataStructures.Map import map_functions as mf
 from DataStructures.Utils import error as error
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/'
 
 defualt_limit = 1000
 sys.setrecursionlimit(defualt_limit*10)
 csv.field_size_limit(2147483647)
+
+def generate_unique_key():
+    """Genera un UUID único para cada entrada"""
+    return str(uuid.uuid4())
 
 def get_time():
     """
@@ -67,18 +73,51 @@ def new_logic():
     """
     Crea el catalogo para almacenar las estructuras de datos
     """
-    #TODO: Llama a las funciónes de creación de las estructuras de datos
-    pass
+    catalog = {
+        'registros': msc.new_map(52428, 0.75),  
+        'por_departamento': msc.new_map(58, 0.75), 
+        'por_producto': msc.new_map(76, 0.75), 
+        'por_categoria': msc.new_map(107, 0.75),  
+        #'tiempo_recoleccion': msc.new_map(997, 0.75)  
+    }
+    return catalog
+
 
 
 # Funciones para la carga de datos
 
-def load_data(catalog, filename):
+def load_data(catalog):
     """
     Carga los datos del reto
     """
-    # TODO: Realizar la carga de datos
-    pass
+    tiempo_inicial = get_time()
+    files = data_dir + 'agricultural-20.csv'
+    
+    input_file = csv.DictReader(open(files, encoding='utf-8'))
+    menor = float('inf')
+    mayor = float('-inf')
+    
+    for row in input_file:
+        row['unique_key'] = generate_unique_key()
+        row["load_time"] = datetime.strptime(row["load_time"], "%Y-%m-%d %H:%M:%S")
+        
+        year = int(row['year_collection'])
+        menor = min(menor, year)
+        mayor = max(mayor, year)
+        
+        msc.put(catalog['registros'], row['unique_key'], row)
+        
+    
+    tiempo_final = get_time()
+    tiempo_total = delta_time(tiempo_inicial, tiempo_final)
+    
+    valores = msc.value_set(catalog['registros'])['elements']
+    sorted_records = lt.merge_sort(valores, 'load_time', descending=True, secondary_key='state_name')
+    size = catalog['registros']['size']
+    
+    primeros = sorted_records[:5]
+    ultimos = sorted_records[-5:]
+    return catalog, tiempo_total, size, menor, mayor, primeros, ultimos
 
 # Funciones de consulta sobre el catálogo
 

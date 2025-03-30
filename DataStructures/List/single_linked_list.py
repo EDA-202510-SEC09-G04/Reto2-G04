@@ -279,3 +279,75 @@ def quick_sort_recursive(my_list, lo, hi, sort_crit):
     pivot = partition(my_list, lo, hi, sort_crit)
     quick_sort_recursive(my_list, lo, pivot-1, sort_crit)
     quick_sort_recursive(my_list, pivot+1, hi, sort_crit)
+    
+    
+def merge_sort_linked(my_list, sort_crit):
+    """
+    Aplica Merge Sort en una lista enlazada siguiendo sort_crit.
+    """
+    if size(my_list) <= 1:
+        return my_list
+
+    left_half, right_half = split_linked_list(my_list)
+    
+    left_half = merge_sort_linked(left_half, sort_crit)
+    right_half = merge_sort_linked(right_half, sort_crit)
+    
+    return merge_linked(left_half, right_half, sort_crit)
+
+def split_linked_list(my_list):
+    """
+    Divide la lista en dos mitades y retorna ambas como listas enlazadas.
+    """
+    if is_empty(my_list) or size(my_list) == 1:
+        return my_list, new_list()
+
+    slow = my_list['first']
+    fast = my_list['first']
+    prev = None
+
+    while fast and fast['next']:
+        prev = slow
+        slow = slow['next']
+        fast = fast['next']['next']
+
+    left_half = my_list
+    right_half = new_list()
+    right_half['first'] = slow
+    right_half['last'] = my_list['last']
+    
+    if prev:
+        prev['next'] = None  # Separar las dos mitades
+        left_half['last'] = prev
+
+    left_half['size'] = (size(my_list) + 1) // 2
+    right_half['size'] = size(my_list) // 2
+
+    return left_half, right_half
+
+def merge_linked(left_half, right_half, sort_crit):
+    """
+    Fusiona dos listas enlazadas ordenadas en una sola.
+    """
+    merged_list = new_list()
+    
+    left = left_half['first']
+    right = right_half['first']
+
+    while left and right:
+        if sort_crit(left['info'], right['info']):
+            add_last(merged_list, left['info'])
+            left = left['next']
+        else:
+            add_last(merged_list, right['info'])
+            right = right['next']
+
+    while left:
+        add_last(merged_list, left['info'])
+        left = left['next']
+
+    while right:
+        add_last(merged_list, right['info'])
+        right = right['next']
+
+    return merged_list

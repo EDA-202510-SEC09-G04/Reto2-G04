@@ -204,3 +204,40 @@ def quick_sort_recursive(my_list, lo, hi, sort_crit):
     pivot = partition(my_list, lo, hi, sort_crit)
     quick_sort_recursive(my_list, lo, pivot-1, sort_crit)
     quick_sort_recursive(my_list, pivot+1, hi, sort_crit)
+    
+def merge_sort(records, key, descending=True, secondary_key=None):
+    if len(records) <= 1:
+        return records
+
+    mid = len(records) // 2
+    left_half = merge_sort(records[:mid], key, descending, secondary_key)
+    right_half = merge_sort(records[mid:], key, descending, secondary_key)
+
+    return merge(left_half, right_half, key, descending, secondary_key)
+
+def merge(left_half, right_half, key, descending, secondary_key):
+    sorted_list = []
+    i = j = 0
+
+    while i < len(left_half) and j < len(right_half):
+        left_value = left_half[i][key]
+        right_value = right_half[j][key]
+
+        if left_value > right_value if descending else left_value < right_value:
+            sorted_list.append(left_half[i])
+            i += 1
+        elif left_value < right_value if descending else left_value > right_value:
+            sorted_list.append(right_half[j])
+            j += 1
+        else:  # Empate en key -> comparar por secondary_key (ascendente)
+            if secondary_key:
+                if left_half[i][secondary_key] < right_half[j][secondary_key]:
+                    sorted_list.append(left_half[i])
+                    i += 1
+                else:
+                    sorted_list.append(right_half[j])
+                    j += 1
+
+    sorted_list.extend(left_half[i:])
+    sorted_list.extend(right_half[j:])
+    return sorted_list

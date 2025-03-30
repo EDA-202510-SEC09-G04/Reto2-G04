@@ -153,8 +153,9 @@ def value_set(map_struct):
         error.reraise(e, 'value_set')
 
 def rehash(map_struct):
+    #la capacidad fue ajustada a 4 veces ya que disminuye las veces que se debe hacer rehash para la cantidad de datos 500,000 que manejamos en este caso xdxdxd
     try:
-        new_capacity = mf.next_prime(map_struct['capacity'] * 2)
+        new_capacity = mf.next_prime(map_struct['capacity'] * 4)
         new_table = al.new_list()
 
         for _ in range(new_capacity):
