@@ -77,8 +77,9 @@ def new_logic():
         'registros': msc.new_map(52428, 0.75),  
         'por_anio': msc.new_map(155, 0.75),  
         'por_departamento': msc.new_map(58, 0.75), 
+        'por_anioydep': msc.new_map(58, 0.75), 
         'por_producto': msc.new_map(76, 0.75), 
-        'por_categoria': msc.new_map(107, 0.75),  
+        'por_categoria': msc.new_map(107, 0.75),
         #'tiempo_recoleccion': msc.new_map(997, 0.75)  
     }
     return catalog
@@ -124,20 +125,50 @@ def load_data(catalog):
         if not msc.contains(catalog['por_departamento'], departamento):
             msc.put(catalog['por_departamento'], departamento, [])
 
-        #get la lista de registros asociada a la llave del departamento       
+        #get la lista de registros asociada a la llave del departamento y actualizarla con el registro nuevo
         dep_list = msc.get(catalog['por_departamento'], departamento)
         dep_list.append(row)
         msc.put(catalog['por_departamento'], departamento, dep_list)
         
+        #GENERACION TABLA POR DEPARTAMENTO -> AÑO -> registros
+        # Asegurar que el departamento existe en la tabla, añadir con el mapa interno
+        if not msc.contains(catalog['por_anioydep'], departamento):
+            tabla_interna = msc.new_map(155, 0.75)
+            msc.put(catalog['por_anioydep'], departamento, tabla_interna)
+
+        # acceder a tabla interna del departamento
+        tabla_dep = msc.get(catalog['por_anioydep'], departamento)
+        #verificar si hay una llave del año en tabla interna
+        if not msc.contains(tabla_dep, year): 
+            #si no hay una llave con el año, agregar inicializado con una lista vacia para los registros
+            msc.put(tabla_dep, year, [])
+            
+        # Agregar el registro a la lista del año
+        registros_anio = msc.get(tabla_dep, year)
+        registros_anio.append(row)
+        msc.put(tabla_dep, year, registros_anio) 
+        
+        #doble super tabla generada
+        
+        #GENERACION TABLA POR PRODUCTO -> AÑO 
+        
+        
     
     tiempo_final = get_time()
     tiempo_total = delta_time(tiempo_inicial, tiempo_final)
-    
+    print('Carga de datos completa en :' + str(tiempo_total))
+    print('Iniciando ordenamiento tabla general')
     
     #SORT A PARTIR DEL LOAD TIME DE LA TABLA DE HASH GENERAL
     valores = msc.value_set(catalog['registros'])['elements']
     sorted_records = lt.merge_sort(valores, 'load_time', descending=True, secondary_key='state_name')
     size = catalog['registros']['size']
+    primeros = sorted_records[:5]
+    ultimos = sorted_records[-5:]
+    
+    print('Ordenamiento completo')
+    
+    print('Iniciando ordenamiento tabla de años')
     
     #SORT A PARTIR DE LOAD TIME LA TABLA DE AÑOS
     anio_llaves = msc.key_set(catalog['por_anio'])['elements']
@@ -146,20 +177,36 @@ def load_data(catalog):
         sorted_list = lt.merge_sort(year_list, 'load_time', descending=False, secondary_key='state_name')
 
         msc.put(catalog['por_anio'], year, sorted_list)
+    print('Ordenamiento completo')
     
     #SORT A PARTIR DE LOAD TIME LA TABLA DE DEPARTAMETOS
     #CUAL ES EL SEGNUDO PARAMETRO PARA EL SORT????? NO ESTA EN LA GUIA BROOO TT por ahora lo dejo como commodity
-
+    print('Iniciando ordenamiento tabla departamentos')
     dep_llaves = msc.key_set(catalog['por_departamento'])['elements']
     for dep in dep_llaves:    
         dep_list = msc.get(catalog['por_departamento'], dep)
         sorted_list = lt.merge_sort(dep_list, 'load_time', descending=False, secondary_key='commodity')
         msc.put(catalog['por_departamento'], dep, sorted_list)
+    print('Ordenamiento completo')
+    
+    print('Iniciando ordenamiento tabla doble departamento - años')
+    
+    #SORT A PARTIR DE LOAD TIME DE LA DOBLE TABLA DEPARTAMENTO AÑO
+    for departamento in msc.key_set(catalog['por_anioydep'])['elements']:
+        tabla_dep = msc.get(catalog['por_anioydep'], departamento)
+        
+        for year in msc.key_set(tabla_dep)['elements']:
+            registros = msc.get(tabla_dep, year) #tampoco nos dice la guia el segundo criterio de ordenarmiento, en este caso el dep seria invalido
+            sorted_records = lt.merge_sort(registros, 'load_time', descending=False, secondary_key='commodity')
+            msc.put(tabla_dep, year, sorted_records)  
+    print('Ordenamiento completo')
     
     
-    primeros = sorted_records[:5]
-    ultimos = sorted_records[-5:]
+    
+    
 
+    
+    
     
     return catalog, tiempo_total, size, menor, mayor, primeros, ultimos
 
