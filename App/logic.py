@@ -77,8 +77,9 @@ def new_logic():
         'registros': msc.new_map(52428, 0.75),  
         'por_anio': msc.new_map(155, 0.75),  
         'por_departamento': msc.new_map(58, 0.75), 
+        'por_anioydep': msc.new_map(58, 0.75), 
         'por_producto': msc.new_map(76, 0.75), 
-        'por_categoria': msc.new_map(107, 0.75),  
+        'por_categoria': msc.new_map(107, 0.75),
         #'tiempo_recoleccion': msc.new_map(997, 0.75)  
     }
     return catalog
@@ -105,6 +106,8 @@ def load_data(catalog):
         
         year = int(row['year_collection'])
         departamento = row['state_name']
+        producto = row['commodity']
+        categoria = row['statical_category']
         
         menor = min(menor, year)
         mayor = max(mayor, year)
@@ -124,20 +127,84 @@ def load_data(catalog):
         if not msc.contains(catalog['por_departamento'], departamento):
             msc.put(catalog['por_departamento'], departamento, [])
 
-        #get la lista de registros asociada a la llave del departamento       
+        #get la lista de registros asociada a la llave del departamento y actualizarla con el registro nuevo
         dep_list = msc.get(catalog['por_departamento'], departamento)
         dep_list.append(row)
         msc.put(catalog['por_departamento'], departamento, dep_list)
         
+        #GENERACION TABLA POR DEPARTAMENTO -> AÑO -> registros
+        # Asegurar que el departamento existe en la tabla, añadir con el mapa interno
+        if not msc.contains(catalog['por_anioydep'], departamento):
+            tabla_interna = msc.new_map(155, 0.75)
+            msc.put(catalog['por_anioydep'], departamento, tabla_interna)
+
+        # acceder a tabla interna del departamento
+        tabla_dep = msc.get(catalog['por_anioydep'], departamento)
+        #verificar si hay una llave del año en tabla interna
+        if not msc.contains(tabla_dep, year): 
+            #si no hay una llave con el año, agregar inicializado con una lista vacia para los registros
+            msc.put(tabla_dep, year, [])
+            
+        # Agregar el registro a la lista del año
+        registros_anio = msc.get(tabla_dep, year)
+        registros_anio.append(row)
+        msc.put(tabla_dep, year, registros_anio) 
+        
+        #doble super tabla generada
+        
+        #GENERACION TABLA POR PRODUCTO -> AÑO 
+        # Asegurar que el producto existe en la tabla, añadir con el mapa interno
+        if not msc.contains(catalog['por_producto'], producto):
+            tabla_interna = msc.new_map(155, 0.75)
+            msc.put(catalog['por_producto'], producto, tabla_interna)
+            
+        # acceder a tabla interna del producto
+        tabla_producto = msc.get(catalog['por_producto'], producto)
+        #verificar si hay una llave del año en tabla interna
+        if not msc.contains(tabla_producto, year): 
+            #si no hay una llave con el año, agregar inicializado con una lista vacia para los registros
+            msc.put(tabla_producto, year, [])
+            
+        # Agregar el registro de producto a la lista del año
+        prod_registros_anio = msc.get(tabla_producto, year)
+        prod_registros_anio.append(row)
+        msc.put(tabla_producto, year, prod_registros_anio) 
+        #doble  tabla generada
+        
+        #GENERACION TABLA POR CATEGORIA ESTADISTICA -> AÑO 
+        # Asegurar que el producto existe en la tabla, añadir con el mapa interno
+        if not msc.contains(catalog['por_categoria'], categoria):
+            tabla_interna = msc.new_map(155, 0.75)
+            msc.put(catalog['por_categoria'], categoria, tabla_interna)
+            
+        # acceder a tabla interna de la categoria estadistica
+        tabla_categoria = msc.get(catalog['por_categoria'], producto)
+        #verificar si hay una llave del año en tabla interna
+        if not msc.contains(tabla_categoria, year): 
+            #si no hay una llave con el año, agregar inicializado con una lista vacia para los registros
+            msc.put(tabla_categoria, year, [])
+            
+        # Agregar el registro de categoria a la lista del año
+        stats_registros_anio = msc.get(tabla_categoria, year)
+        stats_registros_anio.append(row)
+        msc.put(tabla_categoria, year, stats_registros_anio) 
+        #doble  tabla generada
     
     tiempo_final = get_time()
     tiempo_total = delta_time(tiempo_inicial, tiempo_final)
-    
+    print('Carga de datos completa en :' + str(tiempo_total))
+    print('\nIniciando ordenamiento tabla general')
     
     #SORT A PARTIR DEL LOAD TIME DE LA TABLA DE HASH GENERAL
     valores = msc.value_set(catalog['registros'])['elements']
     sorted_records = lt.merge_sort(valores, 'load_time', descending=True, secondary_key='state_name')
     size = catalog['registros']['size']
+    primeros = sorted_records[:5]
+    ultimos = sorted_records[-5:]
+    
+    print('Ordenamiento completo\n')
+    
+    print('Iniciando ordenamiento tabla de años')
     
     #SORT A PARTIR DE LOAD TIME LA TABLA DE AÑOS
     anio_llaves = msc.key_set(catalog['por_anio'])['elements']
@@ -146,20 +213,59 @@ def load_data(catalog):
         sorted_list = lt.merge_sort(year_list, 'load_time', descending=False, secondary_key='state_name')
 
         msc.put(catalog['por_anio'], year, sorted_list)
+    print('Ordenamiento completo\n')
     
     #SORT A PARTIR DE LOAD TIME LA TABLA DE DEPARTAMETOS
     #CUAL ES EL SEGNUDO PARAMETRO PARA EL SORT????? NO ESTA EN LA GUIA BROOO TT por ahora lo dejo como commodity
-
+    print('Iniciando ordenamiento tabla departamentos')
     dep_llaves = msc.key_set(catalog['por_departamento'])['elements']
     for dep in dep_llaves:    
         dep_list = msc.get(catalog['por_departamento'], dep)
         sorted_list = lt.merge_sort(dep_list, 'load_time', descending=False, secondary_key='commodity')
         msc.put(catalog['por_departamento'], dep, sorted_list)
+    print('Ordenamiento completo\n')
+    
+    print('Iniciando ordenamiento tabla doble departamento - años')
+    
+    #SORT A PARTIR DE LOAD TIME DE LA DOBLE TABLA DEPARTAMENTO AÑO
+    for departamento in msc.key_set(catalog['por_anioydep'])['elements']:
+        tabla_dep = msc.get(catalog['por_anioydep'], departamento)
+        
+        for year in msc.key_set(tabla_dep)['elements']:
+            registros = msc.get(tabla_dep, year) #tampoco nos dice la guia el segundo criterio de ordenarmiento, en este caso el dep seria invalido
+            sorted_records = lt.merge_sort(registros, 'load_time', descending=False, secondary_key='commodity')
+            msc.put(tabla_dep, year, sorted_records)  
+    print('Ordenamiento completo\n')
+    
+    print('Iniciando ordenamiento tabla doble producto - años')
+    
+    #SORT A PARTIR DE LOAD TIME DE LA DOBLE TABLA PRODUCTO AÑO
+    for producto in msc.key_set(catalog['por_producto'])['elements']:
+        tabla_prod = msc.get(catalog['por_producto'], producto)
+        
+        for year in msc.key_set(tabla_prod)['elements']:
+            registros = msc.get(tabla_prod, year) 
+            sorted_records = lt.merge_sort(registros, 'load_time', descending=False, secondary_key='state_name')
+            msc.put(tabla_prod, year, sorted_records)  
+    print('Ordenamiento completo\n')
+    
+    print('Iniciando ordenamiento tabla doble categoria - años')
+    #SORT A PARTIR DE LOAD TIME DE LA DOBLE TABLA CATEGORIA AÑO
+    for categoria in msc.key_set(catalog['por_categoria'])['elements']:
+        tabla_categoria = msc.get(catalog['por_categoria'], categoria)
+        
+        for year in msc.key_set(tabla_categoria)['elements']:
+            registros = msc.get(tabla_categoria, year) 
+            sorted_records = lt.merge_sort(registros, 'load_time', descending=False, secondary_key='state_name')
+            msc.put(tabla_categoria, year, sorted_records)  
+    print('Ordenamiento completo\n')
     
     
-    primeros = sorted_records[:5]
-    ultimos = sorted_records[-5:]
+    
+    
 
+    
+    
     
     return catalog, tiempo_total, size, menor, mayor, primeros, ultimos
 
