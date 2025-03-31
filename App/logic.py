@@ -288,7 +288,7 @@ def get_data(catalog, id):
 
 def req_2(catalog,n,departamento):
     """
-    Retorna el resultado del requerimiento 1
+    Retorna el resultado del requerimiento 2
     """
     tiempo_inicial =  get_time()
     
@@ -339,13 +339,39 @@ def ultimos_registros_dep(catalog,n,departamento):
    return registros , len(registros)
           
           
-print(req_2(catalogo,10,'ARKANSAS'))
+
         
 #print(catalogo['por_departamento'])
            
            
            
+           
+           
+def find(catalogo,filtro,filtro2, filtro3):
     
+ elementos = catalogo['por_producto']
+ 
+ 
+ productos = msc.get(elementos,filtro)
+ 
+ 
+ 
+ for i in range(filtro2,filtro3+1):
+     
+     print(f'dato año {i}')
+     filtrado_año =msc.get(productos,i)
+     
+     for k in range(len(filtrado_año)):
+         
+         pass
+ 
+
+                      
+                 
+                 
+                 
+find(catalogo,'CHICKENS',1980,2000)
+
 
 def req_1(catalog):
     """
