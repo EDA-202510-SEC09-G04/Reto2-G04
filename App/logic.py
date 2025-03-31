@@ -93,7 +93,7 @@ def load_data(catalog):
     Carga los datos del reto
     """
     tiempo_inicial = get_time()
-    files = data_dir + 'testeo.csv'
+    files = data_dir + 'agricultural-20.csv'
     
     #GENERACION DE TABLA DE HASH GENERAL
     input_file = csv.DictReader(open(files, encoding='utf-8'))
