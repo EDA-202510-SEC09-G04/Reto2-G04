@@ -178,7 +178,7 @@ def load_data(catalog):
             msc.put(catalog['por_categoria'], categoria, tabla_interna)
             
         # acceder a tabla interna de la categoria estadistica
-        tabla_categoria = msc.get(catalog['por_categoria'], producto)
+        tabla_categoria = msc.get(catalog['por_categoria'], categoria)
         #verificar si hay una llave del año en tabla interna
         if not msc.contains(tabla_categoria, year): 
             #si no hay una llave con el año, agregar inicializado con una lista vacia para los registros
