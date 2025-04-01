@@ -102,7 +102,14 @@ def load_data(catalog):
     
     for row in input_file:
         row['unique_key'] = generate_unique_key()
+        
+        load_year =  int(row['load_time'][:4])
+        collected_year = int(row['year_collection'])
+        diferencia = load_year-collected_year
+        
+        row['diferencia'] = diferencia
         row["load_time"] = datetime.strptime(row["load_time"], "%Y-%m-%d %H:%M:%S")
+        
         
         year = int(row['year_collection'])
         departamento = row['state_name']
@@ -522,12 +529,98 @@ def req_7(catalog, departamento, inicial, final, ordenamiento):
     return dif_tiempo, validos_total, sorted_list, min_anio, min_valor, max_anio, max_valor
 
 
-def req_8(catalog):
+def req_8(catalog, n, ordenamiento):
     """
     Retorna el resultado del requerimiento 8
     """
-    # TODO: Modificar el requerimiento 8
-    pass
+    tiempo_inicial =  get_time()
+    
+    departamentos = msc.key_set(catalog['por_departamento'])['elements']
+    size = msc.key_set(catalog['por_departamento'])['size']
+    
+    
+    resultados = lt.new_list()
+    total_menor = float('inf')
+    total_mayor = float('-inf')
+    total_deps = size
+    
+    promedio_total = 0
+        
+    for dep in departamentos:
+        dep_map = {}
+        
+        diferencias = 0
+        elementos =  msc.get(catalog['por_departamento'], dep)
+        nombre = dep
+        registros = len(elementos)
+        menor_anio = float('inf')
+        mayor_anio = float('-inf')
+        menor_tiempo = float('inf')
+        mayor_tiempo = float('-inf')
+        survey = 0
+        census = 0
+        
+        for registro in elementos:
+            if registro['source'] == "CENSUS":
+                census += 1
+            elif registro['source'] == "SURVEY":
+                survey += 1
+                    
+            if int(registro['year_collection']) < menor_anio:
+                menor_anio = int(registro['year_collection'])
+                
+            if int(registro['year_collection']) > mayor_anio:
+                mayor_anio = int(registro['year_collection'])
+                
+            if registro['diferencia'] < menor_tiempo:
+                menor_tiempo = registro['diferencia']
+            
+            if registro['diferencia'] > mayor_tiempo:
+                mayor_tiempo = registro['diferencia']
+                
+                
+            if int(registro['year_collection']) < total_menor:
+                total_menor = int(registro['year_collection'])
+                
+            if int(registro['year_collection']) > total_mayor:
+                total_mayor = int(registro['year_collection'])
+                
+            diferencias += registro['diferencia']
+        
+        promedio = diferencias/int(len(elementos))
+        promedio_total += diferencias
+        
+        dep_map['nombre'] = nombre
+        dep_map['promedio'] = promedio
+        dep_map['registros'] = registros
+        dep_map['menor_año'] = menor_anio
+        dep_map['mayor_año'] = mayor_anio
+        dep_map['menor_tiempo'] = menor_tiempo
+        dep_map['mayor_tiempo'] = mayor_tiempo
+        dep_map['survey'] = survey
+        dep_map['census'] = census
+        
+        #añadir a lista de todos los deps
+        lt.add_last(resultados, dep_map)
+        
+    #organizar lista de mapas segun ordenamiento
+    od = False
+    if ordenamiento == 'DESCENDENTE':
+        od = True
+        
+    res_list = resultados['elements']
+    sorted_list = lt.merge_sort(res_list, 'promedio', descending=od, secondary_key='nombre')        
+    
+    #falta arreglar este
+    promedio_total = promedio_total/size
+    
+    tiempo_final = get_time()
+    
+    dif_tiempo = delta_time(tiempo_inicial,tiempo_final)
+    
+    res_final = sorted_list[:n]
+    
+    return dif_tiempo, total_deps, promedio_total, total_menor, total_mayor, res_final
 
 
 # Funciones para medir tiempos de ejecucion
