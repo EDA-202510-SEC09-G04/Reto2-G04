@@ -132,12 +132,21 @@ def print_req_7(control, departamento, inicial, final, ordenamiento):
     print(f"\nTiempo de ejecución: {dif_tiempo:.6f} milisegundos")
 
 
-def print_req_8(control):
+def print_req_8(control, n, ordenamiento):
     """
         Función que imprime la solución del Requerimiento 8 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 8
-    pass
+    dif_tiempo, total_deps, promedio_total, total_menor, total_mayor, res_final = logic.req_8(control, n, ordenamiento)
+    print('Total departamentos: ' + str(total_deps))
+    print('Año menor: ' + str(total_menor)) 
+    print('Año mayor: ' + str(total_mayor)) 
+    print('Promedio total: ' + str(promedio_total)) 
+    print(f"\nTiempo de ejecución: {dif_tiempo:.6f} milisegundos")
+    
+    headers = ['nombre','promedio','registros','menor_año','mayor_año','menor_tiempo','mayor_tiempo','survey', 'census']
+    print(format_table(res_final, headers, max_col_width=12))
+    
+    
 
 # Se crea la lógica asociado a la vista
 control = new_logic()
@@ -202,7 +211,9 @@ def main():
             
             
         elif int(inputs) == 9:
-            print_req_8(control)
+            n = int(input('Ingrese el numero departamentos que quiere ver: '))
+            ordenamiento = (input('Ingrese el ordenamiento: '))
+            print_req_8(control, n, ordenamiento)
 
         elif int(inputs) == 0:
             working = False
