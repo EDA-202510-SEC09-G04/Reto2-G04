@@ -1,3 +1,4 @@
+from pprint import pprint
 import sys
 from App import logic
 from tabulate import tabulate
@@ -54,14 +55,31 @@ def print_req_2(control):
     pass
 
 
-def print_req_3(control):
+def print_req_3(control, departamento, inicial, final):
     """
         Función que imprime la solución del Requerimiento 3 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 3
-    pass
+    dif_tiempo, size, census, survey, registros = logic.req_3(control, departamento, inicial, final)
+    headers = ['source','year_collection','load_time','freq_collection','commodity','unit_measurement']
+    print(f"\nTiempo de ejecución: {dif_tiempo:.6f} milisegundos")
+    
+    if size == 0:
+        print('No se encontraron registros para esos parámetros. Intente de nuevo.')
+    else:
+        if size > 20:
+            head, tail = logic.head_y_tail(registros)
+            print("\nPrimeros 5 registros:")
+            print(format_table(head,headers,max_col_width=12))
 
-
+            print("\nÚltimos 5 registros:")
+            print(format_table(tail,headers, max_col_width=12))
+        else:
+            print(format_table(registros, headers, max_col_width=12))
+        print('Total registros encontrados: ' + str(size))
+        print('Total registros encontrados con fuente census: ' + str(census))
+        print('Total registros encontrados con fuente survey: ' + str(survey))
+        
+        
 def print_req_4(control):
     """
         Función que imprime la solución del Requerimiento 4 en consola
@@ -86,12 +104,32 @@ def print_req_6(control):
     pass
 
 
-def print_req_7(control):
+def print_req_7(control, departamento, inicial, final, ordenamiento):
     """
         Función que imprime la solución del Requerimiento 7 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 7
-    pass
+    headers = ['anio','census','survey','validos','invalidos','valor']
+    
+    
+    dif_tiempo, validos_total, sorted_list, min_anio, min_valor, max_anio, max_valor = logic.req_7(control, departamento, inicial, final, ordenamiento)
+    if min_anio == max_anio:
+        print('El menor y el mayor periodo de tiempo son el mismo.')
+    print('Ordenamiento: ' + str(ordenamiento))
+    
+    if validos_total > 15:
+        head, tail = logic.head_y_tail(sorted_list)
+        print("\nPrimeros 5 registros:")
+        print(format_table(head,headers,max_col_width=12))
+
+        print("\nÚltimos 5 registros:")
+        print(format_table(tail,headers, max_col_width=12))
+    else:
+        print(format_table(sorted_list, headers, max_col_width=12))
+    
+    print('Total registros encontrados: ' + str(validos_total))
+    print('Periodo menor: ' + str(min_anio)) 
+    print('Periodo mayor: ' + str(max_anio)) 
+    print(f"\nTiempo de ejecución: {dif_tiempo:.6f} milisegundos")
 
 
 def print_req_8(control):
@@ -141,7 +179,10 @@ def main():
             print_req_2(control)
 
         elif int(inputs) == 4:
-            print_req_3(control)
+            departamento = input('Ingrese el departamento que quiere consultar: ')
+            inicial = int(input('Ingrese el año inicial de búsqueda: '))
+            final = int(input('Ingrese el año final de búsqueda: '))
+            print_req_3(control, departamento, inicial, final)
 
         elif int(inputs) == 5:
             print_req_4(control)
@@ -153,8 +194,13 @@ def main():
             print_req_6(control)
 
         elif int(inputs) == 8:
-            print_req_7(control)
-
+            departamento = input('Ingrese el departamento que quiere consultar: ')
+            inicial = int(input('Ingrese el año inicial de búsqueda: '))
+            final = int(input('Ingrese el año final de búsqueda: '))
+            ordenamiento = (input('Ingrese el ordenamiento: '))
+            print_req_7(control, departamento, inicial, final,ordenamiento)
+            
+            
         elif int(inputs) == 9:
             print_req_8(control)
 

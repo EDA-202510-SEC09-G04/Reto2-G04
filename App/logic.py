@@ -3,7 +3,7 @@ import time
 import os
 import csv
 import sys
-import pprint
+import pprint as pprint
 import uuid
 from tabulate import tabulate
 from datetime import datetime
@@ -272,8 +272,8 @@ def load_data(catalog):
 # Funciones de consulta sobre el catálogo
 
 
-catalogo = new_logic()
-load_data(catalogo)
+#catalogo = new_logic()
+#load_data(catalogo)
 
 
 
@@ -311,7 +311,6 @@ def ultimos_registros_dep(catalog,n,departamento):
    registros = None
    
    
-   
    while i < tamanio and flag :
        
        
@@ -339,7 +338,7 @@ def ultimos_registros_dep(catalog,n,departamento):
    return registros , len(registros)
           
           
-
+#print(req_2(catalogo,10,'ARKANSAS'))
         
 #print(catalogo['por_departamento'])
            
@@ -370,7 +369,7 @@ def find(catalogo,filtro,filtro2, filtro3):
                  
                  
                  
-find(catalogo,'CHICKENS',1980,2000)
+#find(catalogo,'CHICKENS',1980,2000)
 
 
 def req_1(catalog):
@@ -381,12 +380,46 @@ def req_1(catalog):
     pass
 
 
-def req_3(catalog):
+def req_3(catalog, departamento, inicial, final):
     """
     Retorna el resultado del requerimiento 3
     """
-    # TODO: Modificar el requerimiento 3
-    pass
+    tiempo_inicial =  get_time()
+    
+    inicial = int(inicial)
+    final = int(final)
+    registros = lt.new_list()
+    
+    census = 0
+    survey = 0
+    
+    for i in range(inicial, final+1):
+        tabla_registro = msc.get(catalog['por_anioydep'], departamento)
+        registro_anio = msc.get(tabla_registro, i)
+        
+        if registro_anio: 
+            for registro in registro_anio: 
+                if registro['source'] == "CENSUS":
+                    census += 1
+                elif registro['source'] == "SURVEY":
+                    survey += 1
+            
+                lt.add_last(registros, registro)
+    #sort los registros finales por el load time
+    
+    reg_list = registros['elements']
+    sorted_list = lt.merge_sort(reg_list, 'load_time', descending=False, secondary_key='commodity')
+    registros['elements'] = sorted_list
+    
+    size = registros['size']
+        
+    tiempo_final = get_time()
+    
+    dif_tiempo = delta_time(tiempo_inicial,tiempo_final)
+    
+    
+    return dif_tiempo, size, census, survey, registros
+    
 
 
 def req_4(catalog):
@@ -412,12 +445,81 @@ def req_6(catalog):
     pass
 
 
-def req_7(catalog):
+def req_7(catalog, departamento, inicial, final, ordenamiento):
     """
     Retorna el resultado del requerimiento 7
     """
-    # TODO: Modificar el requerimiento 7
-    pass
+    tiempo_inicial =  get_time()
+    
+    inicial = int(inicial)
+    final = int(final)
+    resultados = msc.new_map(55,0.75)
+    
+    min_anio = None
+    max_anio = None
+    min_valor = float('inf')
+    max_valor = float('-inf')
+    
+    tabla_registro = msc.get(catalog['por_anioydep'], departamento)
+    for i in range(inicial, final+1):
+        registro_anio = msc.get(tabla_registro, i)
+        
+        if registro_anio: 
+            census = 0
+            survey = 0
+            invalidos = 0
+            valor = 0
+            #Númeroderegistrosquecumplenelperiododelfiltrodelaño osea todso los q entren en el prox loop
+            validos = 0
+            for registro in registro_anio: 
+            
+                if registro['source'] == "CENSUS":
+                    census += 1
+                elif registro['source'] == "SURVEY":
+                    survey += 1
+                    
+                if es_numero((registro['value'])) == True and '$' in registro['unit_measurement']: 
+                    valor += float(registro['value'].replace(',', ''))
+                    validos += 1
+                    #print(registro)
+                else:
+                    invalidos += 1
+               
+                    
+            #verificar si es menor o mayor
+            if valor > max_valor:
+                max_valor = valor
+                max_anio = i
+            if valor < min_valor:
+                min_valor = valor
+                min_anio = i
+                    
+            
+        msc.put(resultados, i, {
+            'anio':i,
+            'census': census,
+            'survey': survey,
+            'validos': validos,
+            'invalidos':invalidos,
+            'valor': valor
+        })
+        
+    #sort los registros finales por su valor ascendente o descendente
+    #segundo parámetro de ordenamiento el número de registros que cumplen el periodo de año de manera descendente
+    od = False
+    if ordenamiento == 'DESCENDENTE':
+        od = True
+    reg_list = msc.value_set(resultados)
+    
+    sorted_list = lt.merge_sort(reg_list['elements'], 'valor', descending=od, secondary_key='validos')
+    
+    validos_total = resultados['size']
+        
+    tiempo_final = get_time()
+    
+    dif_tiempo = delta_time(tiempo_inicial,tiempo_final)
+    
+    return dif_tiempo, validos_total, sorted_list, min_anio, min_valor, max_anio, max_valor
 
 
 def req_8(catalog):
@@ -444,3 +546,16 @@ def delta_time(start, end):
     elapsed = float(end - start)
     return elapsed
 
+def head_y_tail(registros):
+    head = registros['elements'][:5]
+    size = registros['size'] 
+    tail = registros['elements'][size - 5:size]
+    return head, tail
+
+#ayuda a ver si un string es un numero
+def es_numero(value):
+    try:
+        float(value.replace(',', ''))
+        return True
+    except ValueError:
+        return False
