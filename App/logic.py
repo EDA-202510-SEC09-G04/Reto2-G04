@@ -377,14 +377,49 @@ def find(catalogo,filtro,filtro2, filtro3):
                  
                  
 #find(catalogo,'CHICKENS',1980,2000)
+def req_1(catalog, anio):
+    """
+    Requerimiento 1:
+    Retorna los 10 registros más recientes (por load_time) para un año específico de recolección.
+    """
+
+    tiempo_inicial = get_time()
+    registros = lt.new_list()
+
+    # Obtener todos los registros del mapa general
+    todos = msc.value_set(catalog['registros'])
+
+    for i in range(lt.size(todos)):
+        registro = lt.get_element(todos, i)
+
+        if int(registro['year_collection']) == anio:
+            lt.add_last(registros, registro)
+
+    if lt.size(registros) == 0:
+        tiempo_final = get_time()
+        return lt.new_list(), 0, delta_time(tiempo_inicial, tiempo_final)
+
+    reg_list = registros['elements']
+
+    # Ordenar de forma recursiva por 'load_time'
+    sorted_list = lt.merge_recursive_sort(reg_list, key='load_time', descending=True)
+    registros['elements'] = sorted_list
+
+    # Tomar los 10 primeros registros ordenados
+    top_10 = lt.new_list()
+    for i in range(min(10, len(sorted_list))):
+        lt.add_last(top_10, sorted_list[i])
+
+    tiempo_final = get_time()
+    return top_10, lt.size(top_10), delta_time(tiempo_inicial, tiempo_final)
 
 
-def req_1(catalog):
-    """
-    Retorna el resultado del requerimiento 1
-    """
-    # TODO: Modificar el requerimiento 1
-    pass
+
+   
+
+
+   
+
 
 
 def req_3(catalog, departamento, inicial, final):

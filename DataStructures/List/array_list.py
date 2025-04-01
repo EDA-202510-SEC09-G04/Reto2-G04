@@ -241,3 +241,79 @@ def merge(left_half, right_half, key, descending, secondary_key):
     sorted_list.extend(left_half[i:])
     sorted_list.extend(right_half[j:])
     return sorted_list
+
+
+
+def merge_recursive_sort(arr, key, descending=True, secondary_key=None):
+    """
+    Implementación recursiva de Merge Sort para listas nativas (list[dict]).
+    Se ordena por 'key', con opción de 'descending', y un 'secondary_key' opcional
+    para resolver empates.
+
+    Parámetros:
+    - arr: list[dict] → lista de diccionarios.
+    - key: str → clave principal para ordenar.
+    - descending: bool → True para orden descendente, False para ascendente.
+    - secondary_key: str → clave secundaria opcional para desempates.
+
+    Retorna:
+    - list[dict] ordenada según los criterios dados.
+    """
+
+    if len(arr) <= 1:
+        return arr
+
+    mid = len(arr) // 2
+    left = merge_recursive_sort(arr[:mid], key, descending, secondary_key)
+    right = merge_recursive_sort(arr[mid:], key, descending, secondary_key)
+
+    return merge_recursive(left, right, key, descending, secondary_key)
+
+def merge_recursive(left, right, key, descending, secondary_key):
+    result = []
+    i = j = 0
+
+    while i < len(left) and j < len(right):
+        left_val = left[i][key]
+        right_val = right[j][key]
+
+        if descending:
+            if left_val > right_val:
+                result.append(left[i])
+                i += 1
+            elif left_val < right_val:
+                result.append(right[j])
+                j += 1
+            else:  # empate
+                if secondary_key:
+                    if left[i][secondary_key] > right[j][secondary_key]:
+                        result.append(left[i])
+                        i += 1
+                    else:
+                        result.append(right[j])
+                        j += 1
+                else:
+                    result.append(left[i])
+                    i += 1
+        else:
+            if left_val < right_val:
+                result.append(left[i])
+                i += 1
+            elif left_val > right_val:
+                result.append(right[j])
+                j += 1
+            else:
+                if secondary_key:
+                    if left[i][secondary_key] < right[j][secondary_key]:
+                        result.append(left[i])
+                        i += 1
+                    else:
+                        result.append(right[j])
+                        j += 1
+                else:
+                    result.append(left[i])
+                    i += 1
+
+    result.extend(left[i:])
+    result.extend(right[j:])
+    return result

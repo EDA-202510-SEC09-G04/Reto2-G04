@@ -40,11 +40,38 @@ def print_data(control, id):
     pass
 
 def print_req_1(control):
-    """
-        Función que imprime la solución del Requerimiento 1 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 1
-    pass
+    print("\nRequerimiento 1: 10 registros más recientes por año de recolección")
+
+    anio_input = input("Ingrese el año de recolección (por ejemplo, 2021): ")
+    if not anio_input.isdigit():
+        print("Año inválido. Debe ser un número entero.")
+        return
+
+    anio = int(anio_input)
+    registros, size, dif_tiempo = logic.req_1(control, anio)
+
+    print(f"\nTiempo de ejecución: {dif_tiempo:.6f} milisegundos")
+
+    headers = ['year_collection', 'load_time', 'state_name', 'source', 'unit_measurement', 'value']
+
+    if size == 0:
+        print("No se encontraron registros para ese año.")
+        return
+
+    if size > 20:
+        head, tail = logic.head_y_tail(registros)
+        print("\nPrimeros 5 registros:")
+        print(format_table(head['elements'], headers, max_col_width=12))
+
+        print("\nÚltimos 5 registros:")
+        print(format_table(tail['elements'], headers, max_col_width=12))
+    else:
+        print(format_table(registros['elements'], headers, max_col_width=12))
+
+    print('Total registros encontrados: ' + str(size))
+
+
+
 
 
 def print_req_2(control):
