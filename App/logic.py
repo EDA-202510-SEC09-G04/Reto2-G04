@@ -356,22 +356,72 @@ def find(catalogo,filtro,filtro2, filtro3):
  
  
  productos = msc.get(elementos,filtro)
- 
- 
+ filtrado_año = None
+ survey_count = 0 
+ census_count = 0 
+ num_resultados= 0
+ mapa = msc.new_map(100,0.75)
+ resultado_lista =[]
  
  for i in range(filtro2,filtro3+1):
      
-     print(f'dato año {i}')
-     filtrado_año =msc.get(productos,i)
      
-     for k in range(len(filtrado_año)):
+     filtrado_año =msc.get(productos,i)
+     num_resultados += len(filtrado_año)
+     
+     for j in filtrado_año:
          
-         pass
+         if msc.contains(mapa,j['load_time']):
+            msc.get(mapa,j['load_time']).append(j)
+            if j['source'] =='SURVEY':
+                survey_count += 1
+            
+            elif j['source'] =='CENSUS':
+                
+                census_count += 1
+         else:
+             lista = []
+             msc.put(mapa,j['load_time'],lista)
+             if j['source'] =='SURVEY':
+                survey_count += 1
+            
+             elif j['source'] =='CENSUS':
+                
+                census_count += 1
+     
+     
+ llaves = sorted(msc.key_set(mapa)['elements'])
  
-                 
-                 
-#find(catalogo,'CHICKENS',1980,2000)
-def req_1(catalog, anio):
+ primeros_cinco = msc.get(mapa,llaves[0])[:5]
+ ultimos_cinco = msc.get(mapa,llaves[-1])[-5:]
+ 
+ resultados = primeros_cinco + ultimos_cinco
+ 
+ for i in resultados:
+     
+     nuevo_dato ={}
+     
+     nuevo_dato['SOURCE'] = i['source']
+     nuevo_dato['YEAR_COLLECTION'] = i['year_collection']
+     nuevo_dato['LOAD_TIME'] = i['load_time']
+     nuevo_dato['FREQ_COLLECTION'] = i['freq_collection']
+     nuevo_dato['STATE_NAME'] = i['state_name']
+     nuevo_dato['UNIT_MEASUREMENT'] = i['unit_measurement']
+     
+     resultado_lista.append(nuevo_dato)
+     
+ 
+ return resultado_lista , survey_count, census_count, num_resultados
+         
+    
+             
+ 
+ 
+                      
+
+
+
+def req_1(catalog):
     """
     Requerimiento 1:
     Retorna los 10 registros más recientes (por load_time) para un año específico de recolección.
@@ -458,15 +508,25 @@ def req_3(catalog, departamento, inicial, final):
     
 
 
-def req_4(catalog):
+def req_4(catalog,producto,año_inicial,año_final):
     """
     Retorna el resultado del requerimiento 4
     """
     # TODO: Modificar el requerimiento 4
-    pass
+    
+    tiempo_inicial = get_time()
+    resultado, survey, census, num_results = find(catalog,producto,año_inicial,año_final)
+    tiempo_final = get_time()
+    
+    delta_time = tiempo_final- tiempo_inicial
+    return delta_time, resultado, survey, census , num_results
 
 
-def req_5(catalog):
+
+
+
+
+def req_5(catalog,producto,año_inicial,año_final):
     """
     Retorna el resultado del requerimiento 5
     """
