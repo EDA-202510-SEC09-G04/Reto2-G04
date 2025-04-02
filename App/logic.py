@@ -346,7 +346,7 @@ def ultimos_registros_dep(catalog,n,departamento):
 
 catalogo = new_logic()
 load_data(catalogo)
-print(req_2(catalogo,10,'ARKANSAS'))
+# print(req_2(catalogo,10,'ARKANSAS'))
         
 #print(catalogo['por_departamento'])
            
@@ -525,7 +525,7 @@ def req_4(catalog,producto,año_inicial,año_final):
 
 
 
-
+print(req_4(catalogo,'SHEEP',2000,2007))
 
 
 def req_5(catalog,categoria,año_inicial,año_final):
