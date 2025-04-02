@@ -1,4 +1,5 @@
 import random
+from re import I
 import time
 import os
 import csv
@@ -535,68 +536,99 @@ def req_5(catalog,producto,año_inicial,año_final):
 
 
 
-from datetime import datetime
-from time import perf_counter
-
 def req_6(catalog, departamento, fecha_carga_inicial, fecha_carga_final):
     tiempo_inicial = get_time()
-    registros = lt.new_list()
-
-    # Obtener todos los registros del mapa general
-    todos = msc.value_set(catalog['registros'])
-
-    # Convertir strings del usuario a objetos datetime.date
-    INICIAL = datetime.strptime(fecha_carga_inicial.strip(), "%Y-%m-%d").date()
-    FINAL = datetime.strptime(fecha_carga_final.strip(), "%Y-%m-%d").date()
-
-    census = 0
+    
+    registros = msc.get(catalog['por_departamento'], departamento)
+    resultados = lt.new_list()
+        
+    fecha_carga_inicial = datetime.strptime(fecha_carga_inicial, "%Y-%m-%d")
+    fecha_carga_final = datetime.strptime(fecha_carga_final, "%Y-%m-%d")
+    
     survey = 0
-
-    for i in range(lt.size(todos)):
-        registro = lt.get_element(todos, i)
-
-        # Validar que el estado coincida
-        if registro['state_name'] != departamento:
-            continue
-        # Obtener y validar el campo 'load_time'
-        load_time = registro.get('load_time')
-
-        if isinstance(load_time, str):
-            try:
-                load_time = datetime.strptime(load_time.strip(), "%Y-%m-%d %H:%M:%S")
-            except ValueError:
-                continue
-
-        if not isinstance(load_time, datetime):
-            continue
-
-        # Comparar solo por la fecha (sin hora)
-        fecha_carga = load_time.date()
-        if INICIAL <= fecha_carga <= FINAL:
-            lt.add_last(registros, registro)
-
-            if registro.get('source') == "CENSUS":
-                census += 1
-            elif registro.get('source') == "SURVEY":
-                survey += 1
-
-    # Ordenar por 'load_time' descendente y desempatar con 'state_name' ascendente
-    registros_nativos = registros['elements']
-    mitad = len(registros_nativos) // 2
-
-    registros_ordenados = lt.merge_recursive(
-        registros_nativos[:mitad],
-        registros_nativos[mitad:],
-        key='load_time',
-        descending=True,
-        secondary_key='state_name'
-    )
-
-    registros['elements'] = registros_ordenados
-
+    census = 0
+    
+    for i in registros:
+        
+        if fecha_carga_inicial <= i['load_time'] <= fecha_carga_final:
+            lt.add_last(resultados, i)
+            if i['source'] == "CENSUS":
+                    census += 1
+            elif i['source'] == "SURVEY":
+                    survey += 1
+            
+    
+    total_registros = resultados['size']
+            
     tiempo_final = get_time()
     tiempo_total = delta_time(tiempo_inicial, tiempo_final)
-    size = lt.size(registros)
+    
+    reg_list = resultados['elements']
+    sorted_list = lt.merge_sort(reg_list, 'load_time', descending=False, secondary_key='state_name')
+    resultados['elements'] = sorted_list
+        
+    return tiempo_total, total_registros, survey, census, resultados
+            
+        
+    
+    
+    
+
+    """ # Obtener todos los registros del mapa general
+        todos = msc.value_set(catalog['registros'])
+
+        # Convertir strings del usuario a objetos datetime.date
+        inicial = datetime.strptime(fecha_carga_inicial.strip(), "%Y-%m-%d").date()
+        final = datetime.strptime(fecha_carga_final.strip(), "%Y-%m-%d").date()
+
+        census = 0
+        survey = 0
+
+        for i in range(lt.size(todos)):
+            registro = lt.get_element(todos, i)
+
+            # Validar que el estado coincida
+            if registro['state_name'] != departamento:
+                continue
+            # Obtener y validar el campo 'load_time'
+            load_time = registro.get('load_time')
+
+            if isinstance(load_time, str):
+                try:
+                    load_time = datetime.strptime(load_time.strip(), "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    continue
+
+            if not isinstance(load_time, datetime):
+                continue
+
+            # Comparar solo por la fecha (sin hora)
+            fecha_carga = load_time.date()
+            if inicial <= fecha_carga <= final:
+                lt.add_last(registros, registro)
+
+                if registro.get('source') == "CENSUS":
+                    census += 1
+                elif registro.get('source') == "SURVEY":
+                    survey += 1
+
+        # Ordenar por 'load_time' descendente y desempatar con 'state_name' ascendente
+        registros_nativos = registros['elements']
+        mitad = len(registros_nativos) // 2
+
+        registros_ordenados = lt.merge_recursive(
+            registros_nativos[:mitad],
+            registros_nativos[mitad:],
+            key='load_time',
+            descending=True,
+            secondary_key='state_name'
+        )
+
+        registros['elements'] = registros_ordenados
+
+        tiempo_final = get_time()
+        tiempo_total = delta_time(tiempo_inicial, tiempo_final)
+        size = lt.size(registros) """
 
     return tiempo_total, size, census, survey, registros
 

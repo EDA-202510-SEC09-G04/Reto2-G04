@@ -130,7 +130,6 @@ def print_req_6(control):
     """
         Función que imprime la solución del Requerimiento 6 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 6
     print("\nRequerimiento 6: Estadísticas por departamento en rango de fechas")
     print("Ingrese las fechas en formato 'YYYY-MM-DD' (por ejemplo, 2010-05-01)\n")
 
@@ -142,27 +141,29 @@ def print_req_6(control):
         print("Formato de fecha inválido. Use el formato YYYY-MM-DD.")
         return
 
-    tiempo, size, census, survey, registros = logic.req_6(control, departamento, fecha_inicial, fecha_final)
+    tiempo_total, total_registros, survey, census, resultados = logic.req_6(control, departamento, fecha_inicial, fecha_final)
 
+    size= total_registros
     headers = ['source', 'year_collection', 'load_time', 'freq_collection', 'state_name', 'unit_measurement', 'commodity']
-    print(f"\nTiempo de ejecución: {tiempo:.6f} milisegundos")
-
+    print(f"\nTiempo de ejecución: {tiempo_total:.6f} milisegundos")
+    
     if size == 0:
         print("No se encontraron registros para ese rango de fechas y departamento.")
     else:
         if size > 20:
-            head, tail = logic.head_y_tail(registros)
+            head, tail = logic.head_y_tail(resultados)
             print("\nPrimeros 5 registros:")
-            print(format_table(head, headers, max_col_width=12, format_dates=True))
+            print(format_table(head, headers, max_col_width=12))
 
             print("\nÚltimos 5 registros:")
-            print(format_table(tail, headers, max_col_width=12, format_dates=True))
+            print(format_table(tail, headers, max_col_width=12))
         else:
-            print(format_table(registros, headers, max_col_width=12, format_dates=True))
+            print(format_table(resultados['elements'], headers, max_col_width=12, format_dates=True))
 
         print(f"\nTotal de registros: {size}")
+
         print(f"Registros tipo 'CENSUS': {census}")
-        print(f"Registros tipo 'SURVEY': {survey}")
+        print(f"Registros tipo 'SURVEY': {survey}") 
 
 
 def print_req_7(control, departamento, inicial, final, ordenamiento):
