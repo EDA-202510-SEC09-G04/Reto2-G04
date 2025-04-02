@@ -300,23 +300,28 @@ def req_2(catalog,n,departamento):
     """
     tiempo_inicial =  get_time()
     
-    registros , tamanio_registros = ultimos_registros_dep(catalog,n,departamento)
+    
+    registros = msc.get(catalog['por_departamento'], departamento)
+    resultados = registros[-n:]
+    
     
     tiempo_final = get_time()
     
     dif_tiempo = delta_time(tiempo_inicial,tiempo_final)
     
-    return dif_tiempo, registros,tamanio_registros
+    return dif_tiempo, len(resultados), resultados
 
 
 
 def ultimos_registros_dep(catalog,n,departamento):
     
-   elementos =  catalog['por_departamento']['table']
+    
+    
+   """ elementos =  catalog['por_departamento']['table']
    tamanio = lt.size(elementos)
    i = 0
    flag = True
-   registros = []
+   registros = None
    
    
    while i < tamanio and flag :
@@ -337,25 +342,19 @@ def ultimos_registros_dep(catalog,n,departamento):
           
           flag = False
           
-        i += 1
+        i += 1 """
           
     
     
-   return registros , len(registros)
+   return 
           
-
-catalogo = new_logic()
-load_data(catalogo)
-# print(req_2(catalogo,10,'ARKANSAS'))
-        
-#print(catalogo['por_departamento'])
            
            
            
            
-def find(catalogo,tipo_mapa,filtro,filtro2, filtro3):
+def find(catalogo,filtro,filtro2, filtro3):
     
- elementos = catalogo[tipo_mapa]
+ elementos = catalogo['por_producto']
  
  
  productos = msc.get(elementos,filtro)
@@ -514,10 +513,10 @@ def req_4(catalog,producto,año_inicial,año_final):
     """
     Retorna el resultado del requerimiento 4
     """
-    
+    # TODO: Modificar el requerimiento 4
     
     tiempo_inicial = get_time()
-    resultado, survey, census, num_results = find(catalog,'por_producto',producto,año_inicial,año_final)
+    resultado, survey, census, num_results = find(catalog,producto,año_inicial,año_final)
     tiempo_final = get_time()
     
     delta_time = tiempo_final- tiempo_inicial
@@ -525,31 +524,17 @@ def req_4(catalog,producto,año_inicial,año_final):
 
 
 
-print(req_4(catalogo,'SHEEP',2000,2007))
 
 
-def req_5(catalog,categoria,año_inicial,año_final):
+
+def req_5(catalog,producto,año_inicial,año_final):
     """
     Retorna el resultado del requerimiento 5
     """
-    tiempo_inicial = get_time()
-    resultado_lista, survey, census, num_results = find(catalog,'por_categoria',categoria,año_inicial,año_final)
-    
-    tiempo_final = get_time()
-    
-    delta_time = tiempo_final - tiempo_inicial
-    
-    return delta_time, resultado_lista, survey, census, num_results
+    # TODO: Modificar el requerimiento 5
+    pass
 
 
-
-
-
-#print(req_5(catalogo,'STOCKS',1990,2000))
-
-
-from datetime import datetime
-from time import perf_counter
 
 def req_6(catalog, departamento, fecha_carga_inicial, fecha_carga_final):
     tiempo_inicial = get_time()
