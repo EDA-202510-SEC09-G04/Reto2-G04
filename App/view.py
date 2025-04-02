@@ -78,8 +78,19 @@ def print_req_2(control):
     """
         Función que imprime la solución del Requerimiento 2 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 2
-    pass
+    print(f'\nRequerimiento 2 : Listar los N últimos registros cargados dado un departamento de interés')
+    n_input = int(input('Ingresa El número (N) de registros a listar (ej: 3, 5, 10 o 20): '))
+    departamento_input = input('Ingresa Nombre del departamento a filtrar (ej.: “NEW MEXICO”, “CALIFORNIA” o “COLORADO”): ')
+    
+    dif_tiempo, registros,tamanio = logic.req_2(control,n_input,departamento_input)
+    
+    print(f'\nTiempo de ejecución {dif_tiempo}')
+    headers = ['year_collection', 'load_time', 'state_name', 'source', 'unit_measurement', 'value']
+    
+    print(f'\n {n_input} registros:')
+    print(format_table(registros,headers,max_col_width=12))
+    print(f'Total de registros encontrados:{tamanio}')
+    
 
 
 def print_req_3(control, departamento, inicial, final):

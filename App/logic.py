@@ -305,7 +305,7 @@ def req_2(catalog,n,departamento):
     
     dif_tiempo = delta_time(tiempo_inicial,tiempo_final)
     
-    return dif_tiempo, tamanio_registros, registros
+    return dif_tiempo, registros,tamanio_registros
 
 
 
@@ -315,7 +315,7 @@ def ultimos_registros_dep(catalog,n,departamento):
    tamanio = lt.size(elementos)
    i = 0
    flag = True
-   registros = None
+   registros = []
    
    
    while i < tamanio and flag :
@@ -344,8 +344,10 @@ def ultimos_registros_dep(catalog,n,departamento):
     
    return registros , len(registros)
           
-          
-#print(req_2(catalogo,10,'ARKANSAS'))
+
+catalogo = new_logic()
+load_data(catalogo)
+print(req_2(catalogo,10,'ARKANSAS'))
         
 #print(catalogo['por_departamento'])
            
@@ -353,9 +355,9 @@ def ultimos_registros_dep(catalog,n,departamento):
            
            
            
-def find(catalogo,filtro,filtro2, filtro3):
+def find(catalogo,tipo_mapa,filtro,filtro2, filtro3):
     
- elementos = catalogo['por_producto']
+ elementos = catalogo[tipo_mapa]
  
  
  productos = msc.get(elementos,filtro)
@@ -518,10 +520,10 @@ def req_4(catalog,producto,año_inicial,año_final):
     """
     Retorna el resultado del requerimiento 4
     """
-    # TODO: Modificar el requerimiento 4
+    
     
     tiempo_inicial = get_time()
-    resultado, survey, census, num_results = find(catalog,producto,año_inicial,año_final)
+    resultado, survey, census, num_results = find(catalog,'por_producto',producto,año_inicial,año_final)
     tiempo_final = get_time()
     
     delta_time = tiempo_final- tiempo_inicial
@@ -532,13 +534,24 @@ def req_4(catalog,producto,año_inicial,año_final):
 
 
 
-def req_5(catalog,producto,año_inicial,año_final):
+def req_5(catalog,categoria,año_inicial,año_final):
     """
     Retorna el resultado del requerimiento 5
     """
-    # TODO: Modificar el requerimiento 5
-    pass
+    tiempo_inicial = get_time()
+    resultado_lista, survey, census, num_results = find(catalog,'por_categoria',categoria,año_inicial,año_final)
+    
+    tiempo_final = get_time()
+    
+    delta_time = tiempo_final - tiempo_inicial
+    
+    return delta_time, resultado_lista, survey, census, num_results
 
+
+
+
+
+#print(req_5(catalogo,'STOCKS',1990,2000))
 
 
 from datetime import datetime
