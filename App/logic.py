@@ -1,4 +1,5 @@
 import random
+from re import I
 import time
 import os
 import csv
@@ -327,8 +328,6 @@ def ultimos_registros_dep(catalog,n,departamento):
          
          primero = slist.first_element(el)
          
-        
-       
          if me.get_key(primero['info']) == departamento:
           
           valor = me.get_value(primero['info'])
@@ -350,7 +349,6 @@ load_data(catalogo)
 print(req_2(catalogo,10,'ARKANSAS'))
         
 #print(catalogo['por_departamento'])
-           
            
            
            
@@ -424,46 +422,42 @@ def find(catalogo,tipo_mapa,filtro,filtro2, filtro3):
  
                       
 
-                 
-                 
 
 
-
-def req_1(catalog):
+def req_1(catalog,anio):
     """
     Requerimiento 1:
-    Retorna los 10 registros más recientes (por load_time) para un año específico de recolección.
+    Identifica el último registro cargado a la plataforma para un año de recolección específico.
     """
 
     tiempo_inicial = get_time()
-    registros = lt.new_list()
 
-    # Obtener todos los registros del mapa general
-    todos = msc.value_set(catalog['registros'])
+    # Obtener todos los registros (nativa)
+    todos = msc.value_set(catalog['registros'])['elements']
 
-    for i in range(lt.size(todos)):
-        registro = lt.get_element(todos, i)
+    # Filtrar por año de recolección
+    filtrados = [registro for registro in todos if int(registro['year_collection']) == anio]
 
-        if int(registro['year_collection']) == anio:
-            lt.add_last(registros, registro)
+    total = len(filtrados)
 
-    if lt.size(registros) == 0:
+    if total == 0:
         tiempo_final = get_time()
-        return lt.new_list(), 0, delta_time(tiempo_inicial, tiempo_final)
+        return [], 0, delta_time(tiempo_inicial, tiempo_final)
 
-    reg_list = registros['elements']
+    # Ordenar por load_time descendente
+    ordenados = lt.merge_recursive_sort(filtrados, key='load_time', descending=True)
 
-    # Ordenar de forma recursiva por 'load_time'
-    sorted_list = lt.merge_recursive_sort(reg_list, key='load_time', descending=True)
-    registros['elements'] = sorted_list
-
-    # Tomar los 10 primeros registros ordenados
-    top_10 = lt.new_list()
-    for i in range(min(10, len(sorted_list))):
-        lt.add_last(top_10, sorted_list[i])
+    # Tomar solo el más reciente
+    ultimo_registro = ordenados[0]
 
     tiempo_final = get_time()
-    return top_10, lt.size(top_10), delta_time(tiempo_inicial, tiempo_final)
+    return [ultimo_registro], total, delta_time(tiempo_inicial, tiempo_final)
+
+
+  
+
+
+
 
 
 
@@ -501,8 +495,8 @@ def req_3(catalog, departamento, inicial, final):
                 lt.add_last(registros, registro)
     #sort los registros finales por el load time
     
-    reg_list = registros['elements']
-    sorted_list = lt.merge_sort(reg_list, 'load_time', descending=False, secondary_key='commodity')
+    reg_list = registros['elements']  #segundo key es incoherente
+    sorted_list = lt.merge_sort(reg_list, 'load_time', descending=False, secondary_key='state_name')
     registros['elements'] = sorted_list
     
     size = registros['size']
@@ -559,65 +553,39 @@ from time import perf_counter
 
 def req_6(catalog, departamento, fecha_carga_inicial, fecha_carga_final):
     tiempo_inicial = get_time()
-    registros = lt.new_list()
-
-    # Obtener todos los registros del mapa general
-    todos = msc.value_set(catalog['registros'])
-
-    # Convertir strings del usuario a objetos datetime.date
-    INICIAL = datetime.strptime(fecha_carga_inicial.strip(), "%Y-%m-%d").date()
-    FINAL = datetime.strptime(fecha_carga_final.strip(), "%Y-%m-%d").date()
-
-    census = 0
+    
+    registros = msc.get(catalog['por_departamento'], departamento)
+    resultados = lt.new_list()
+        
+    fecha_carga_inicial = datetime.strptime(fecha_carga_inicial, "%Y-%m-%d")
+    fecha_carga_final = datetime.strptime(fecha_carga_final, "%Y-%m-%d")
+    
     survey = 0
-
-    for i in range(lt.size(todos)):
-        registro = lt.get_element(todos, i)
-
-        # Validar que el estado coincida
-        if registro['state_name'] != departamento:
-            continue
-        # Obtener y validar el campo 'load_time'
-        load_time = registro.get('load_time')
-
-        if isinstance(load_time, str):
-            try:
-                load_time = datetime.strptime(load_time.strip(), "%Y-%m-%d %H:%M:%S")
-            except ValueError:
-                continue
-
-        if not isinstance(load_time, datetime):
-            continue
-
-        # Comparar solo por la fecha (sin hora)
-        fecha_carga = load_time.date()
-        if INICIAL <= fecha_carga <= FINAL:
-            lt.add_last(registros, registro)
-
-            if registro.get('source') == "CENSUS":
-                census += 1
-            elif registro.get('source') == "SURVEY":
-                survey += 1
-
-    # Ordenar por 'load_time' descendente y desempatar con 'state_name' ascendente
-    registros_nativos = registros['elements']
-    mitad = len(registros_nativos) // 2
-
-    registros_ordenados = lt.merge_recursive(
-        registros_nativos[:mitad],
-        registros_nativos[mitad:],
-        key='load_time',
-        descending=True,
-        secondary_key='state_name'
-    )
-
-    registros['elements'] = registros_ordenados
-
+    census = 0
+    
+    for i in registros:
+        
+        if fecha_carga_inicial <= i['load_time'] <= fecha_carga_final:
+            lt.add_last(resultados, i)
+            if i['source'] == "CENSUS":
+                    census += 1
+            elif i['source'] == "SURVEY":
+                    survey += 1
+            
+    
+    total_registros = resultados['size']
+            
     tiempo_final = get_time()
     tiempo_total = delta_time(tiempo_inicial, tiempo_final)
-    size = lt.size(registros)
-
-    return tiempo_total, size, census, survey, registros
+    
+    reg_list = resultados['elements']
+    sorted_list = lt.merge_sort(reg_list, 'load_time', descending=False, secondary_key='state_name')
+    resultados['elements'] = sorted_list
+        
+    return tiempo_total, total_registros, survey, census, resultados
+            
+        
+    
 
 
         
