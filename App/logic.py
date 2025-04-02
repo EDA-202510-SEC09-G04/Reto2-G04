@@ -421,7 +421,7 @@ def find(catalogo,filtro,filtro2, filtro3):
 
 
 
-def req_1(catalog):
+def req_1(catalog,anio):
     """
     Requerimiento 1:
     Identifica el último registro cargado a la plataforma para un año de recolección específico.
