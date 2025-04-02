@@ -118,12 +118,12 @@ def print_req_4(control):
     tiempo_eject,resultado,survey,census,num_results= logic.req_4(control,producto_input,año_inicial_input,año_final_input)
     headers = ['year_collection', 'load_time', 'state_name', 'source', 'unit_measurement', 'value']
     
-    head, tail = logic.head_y_tail(resultado)
+   
     print(f'\nTiempo de ejecución {tiempo_eject}')
     print('Primeros 5 datos:')
-    print(format_table(head,headers,max_col_width=12))
+    print(resultado[:5])
     print('Ultimos 5 datos:')
-    print(format_table(tail,headers,max_col_width=12))
+    print(resultado[-5:])
     
     
     print(f'\n numero de elementos de origen "SURVEY": {survey}')
@@ -142,12 +142,12 @@ def print_req_5(control):
     tiempo_eject,resultado,survey,census,num_results= logic.req_4(control,producto_input,año_inicial_input,año_final_input)
     headers = ['year_collection', 'load_time', 'state_name', 'source', 'unit_measurement', 'value']
     
-    head, tail = logic.head_y_tail(resultado)
+   
     print(f'\nTiempo de ejecución {tiempo_eject}')
     print('Primeros 5 datos:')
-    print(format_table(head,headers,max_col_width=12))
+    print(resultado[:5])
     print('Ultimos 5 datos:')
-    print(format_table(tail,headers,max_col_width=12))
+    print(resultado[-5:])
     
     
     print(f'\n numero de elementos de origen "SURVEY": {survey}')
