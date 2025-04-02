@@ -122,8 +122,24 @@ def print_req_4(control):
     """
         Función que imprime la solución del Requerimiento 4 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 4
-    pass
+    producto_input = input('Ingresar Tipo de producto a filtrar (ej.: “HOGS”, “SHEEP”, etc.):')
+    año_inicial_input = int(input('Ingresar Año inicial del periodo a consultar (con formato "YYYY ", ej.: “2007”): '))
+    año_final_input = int(input('Ingresar Año final del periodo a consultar (con formato "YYYY", ej.: “2010”): '))
+    
+    tiempo_eject,resultado,survey,census,num_results= logic.req_4(control,producto_input,año_inicial_input,año_final_input)
+    headers = ['year_collection', 'load_time', 'state_name', 'source', 'unit_measurement', 'value']
+    
+    head, tail = logic.head_y_tail(resultado)
+    print(f'\nTiempo de ejecución {tiempo_eject}')
+    print('Primeros 5 datos:')
+    print(format_table(head,headers,max_col_width=12))
+    print('Ultimos 5 datos:')
+    print(format_table(tail,headers,max_col_width=12))
+    
+    
+    print(f'\n numero de elementos de origen "SURVEY": {survey}')
+    print(f'\n numero de elementos de origen "CENSUS": {census}')
+    print(f'\n numero de registros filtrados: {num_results}')
 
 
 def print_req_5(control):
