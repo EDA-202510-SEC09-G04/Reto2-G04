@@ -353,24 +353,34 @@ def find(catalogo,filtro,filtro2, filtro3):
  
  
  productos = msc.get(elementos,filtro)
- 
- 
+ filtrado_año = None
+ survey_count = 0 
+ census_count = 0 
+ mapa = msc.new_map(100,0.75)
  
  for i in range(filtro2,filtro3+1):
      
-     print(f'dato año {i}')
+     
      filtrado_año =msc.get(productos,i)
      
-     for k in range(len(filtrado_año)):
+     for j in filtrado_año:
          
-         pass
+         if msc.contains(mapa,j['load_time']):
+            msc.get(mapa,j['load_time']).append(j)
+         else:
+             lista = []
+             msc.put(mapa,j['load_time'],lista)
+     
+     
  
-
+             
+             
+ return sorted(msc.key_set(mapa)['elements'])
                       
                  
                  
                  
-find(catalogo,'CHICKENS',1980,2000)
+print(find(catalogo,'CHICKENS',1980,2000))
 
 
 def req_1(catalog):
