@@ -570,69 +570,6 @@ def req_6(catalog, departamento, fecha_carga_inicial, fecha_carga_final):
             
         
     
-    
-    
-
-    """ # Obtener todos los registros del mapa general
-        todos = msc.value_set(catalog['registros'])
-
-        # Convertir strings del usuario a objetos datetime.date
-        inicial = datetime.strptime(fecha_carga_inicial.strip(), "%Y-%m-%d").date()
-        final = datetime.strptime(fecha_carga_final.strip(), "%Y-%m-%d").date()
-
-        census = 0
-        survey = 0
-
-        for i in range(lt.size(todos)):
-            registro = lt.get_element(todos, i)
-
-            # Validar que el estado coincida
-            if registro['state_name'] != departamento:
-                continue
-            # Obtener y validar el campo 'load_time'
-            load_time = registro.get('load_time')
-
-            if isinstance(load_time, str):
-                try:
-                    load_time = datetime.strptime(load_time.strip(), "%Y-%m-%d %H:%M:%S")
-                except ValueError:
-                    continue
-
-            if not isinstance(load_time, datetime):
-                continue
-
-            # Comparar solo por la fecha (sin hora)
-            fecha_carga = load_time.date()
-            if inicial <= fecha_carga <= final:
-                lt.add_last(registros, registro)
-
-                if registro.get('source') == "CENSUS":
-                    census += 1
-                elif registro.get('source') == "SURVEY":
-                    survey += 1
-
-        # Ordenar por 'load_time' descendente y desempatar con 'state_name' ascendente
-        registros_nativos = registros['elements']
-        mitad = len(registros_nativos) // 2
-
-        registros_ordenados = lt.merge_recursive(
-            registros_nativos[:mitad],
-            registros_nativos[mitad:],
-            key='load_time',
-            descending=True,
-            secondary_key='state_name'
-        )
-
-        registros['elements'] = registros_ordenados
-
-        tiempo_final = get_time()
-        tiempo_total = delta_time(tiempo_inicial, tiempo_final)
-        size = lt.size(registros) """
-
-    return tiempo_total, size, census, survey, registros
-
-
-
 
 
         
