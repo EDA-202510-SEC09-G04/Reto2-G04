@@ -40,35 +40,32 @@ def print_data(control, id):
     pass
 
 def print_req_1(control):
-    print("\nRequerimiento 1: 10 registros más recientes por año de recolección")
+    """
+    Imprime la solución del Requerimiento 1:
+    Último registro cargado a la plataforma para un año de interés
+    """
+    print("\nRequerimiento 1: Último registro por año de recolección")
+    anio_input = input("Ingrese el año de recolección (por ejemplo, 2010): ")
 
-    anio_input = input("Ingrese el año de recolección (por ejemplo, 2021): ")
     if not anio_input.isdigit():
-        print("Año inválido. Debe ser un número entero.")
+        print("Por favor ingrese un año válido en formato 'YYYY'.")
         return
 
     anio = int(anio_input)
-    registros, size, dif_tiempo = logic.req_1(control, anio)
+    registros, size, tiempo = logic.req_1(control, anio)
 
-    print(f"\nTiempo de ejecución: {dif_tiempo:.6f} milisegundos")
-
-    headers = ['year_collection', 'load_time', 'state_name', 'source', 'unit_measurement', 'value']
+    print(f"\nTiempo de ejecución: {tiempo:.6f} milisegundos")
 
     if size == 0:
-        print("No se encontraron registros para ese año.")
-        return
-
-    if size > 20:
-        head, tail = logic.head_y_tail(registros)
-        print("\nPrimeros 5 registros:")
-        print(format_table(head['elements'], headers, max_col_width=12))
-
-        print("\nÚltimos 5 registros:")
-        print(format_table(tail['elements'], headers, max_col_width=12))
+        print("No se encontró ningún registro para ese año.")
     else:
-        print(format_table(registros['elements'], headers, max_col_width=12))
+        headers = ['year_collection', 'load_time', 'source', 'freq_collection', 'state_name', 'commodity', 'unit_measurement', 'value']
+        print("\nÚltimo registro más reciente para el año", anio, ":")
+        print(format_table(registros, headers, max_col_width=12))
+        print('Total registros encontrados en ese año: ' + str(size))
 
-    print('Total registros encontrados: ' + str(size))
+    
+
 
 
 

@@ -370,48 +370,44 @@ def find(catalogo,filtro,filtro2, filtro3):
      for k in range(len(filtrado_año)):
          
          pass
- 
 
-                      
-                 
-                 
-                 
-#find(catalogo,'CHICKENS',1980,2000)
+
+from datetime import datetime
+
 def req_1(catalog, anio):
     """
     Requerimiento 1:
-    Retorna los 10 registros más recientes (por load_time) para un año específico de recolección.
+    Identifica el último registro cargado a la plataforma para un año de recolección específico.
     """
 
     tiempo_inicial = get_time()
-    registros = lt.new_list()
 
-    # Obtener todos los registros del mapa general
-    todos = msc.value_set(catalog['registros'])
+    # Obtener todos los registros (nativa)
+    todos = msc.value_set(catalog['registros'])['elements']
 
-    for i in range(lt.size(todos)):
-        registro = lt.get_element(todos, i)
+    # Filtrar por año de recolección
+    filtrados = [registro for registro in todos if int(registro['year_collection']) == anio]
 
-        if int(registro['year_collection']) == anio:
-            lt.add_last(registros, registro)
+    total = len(filtrados)
 
-    if lt.size(registros) == 0:
+    if total == 0:
         tiempo_final = get_time()
-        return lt.new_list(), 0, delta_time(tiempo_inicial, tiempo_final)
+        return [], 0, delta_time(tiempo_inicial, tiempo_final)
 
-    reg_list = registros['elements']
+    # Ordenar por load_time descendente
+    ordenados = lt.merge_recursive_sort(filtrados, key='load_time', descending=True)
 
-    # Ordenar de forma recursiva por 'load_time'
-    sorted_list = lt.merge_recursive_sort(reg_list, key='load_time', descending=True)
-    registros['elements'] = sorted_list
-
-    # Tomar los 10 primeros registros ordenados
-    top_10 = lt.new_list()
-    for i in range(min(10, len(sorted_list))):
-        lt.add_last(top_10, sorted_list[i])
+    # Tomar solo el más reciente
+    ultimo_registro = ordenados[0]
 
     tiempo_final = get_time()
-    return top_10, lt.size(top_10), delta_time(tiempo_inicial, tiempo_final)
+    return [ultimo_registro], total, delta_time(tiempo_inicial, tiempo_final)
+
+
+  
+
+
+
 
 
 
@@ -481,58 +477,43 @@ def req_5(catalog):
 
 
 
-from datetime import datetime
-from time import perf_counter
+
 
 def req_6(catalog, departamento, fecha_carga_inicial, fecha_carga_final):
     tiempo_inicial = get_time()
     registros = lt.new_list()
 
-    # Obtener todos los registros del mapa general
     todos = msc.value_set(catalog['registros'])
 
-    # Convertir strings del usuario a objetos datetime.date
-    INICIAL = datetime.strptime(fecha_carga_inicial.strip(), "%Y-%m-%d").date()
-    FINAL = datetime.strptime(fecha_carga_final.strip(), "%Y-%m-%d").date()
+    fecha_ini = datetime.strptime(fecha_carga_inicial.strip(), "%Y-%m-%d").date()
+    fecha_fin = datetime.strptime(fecha_carga_final.strip(), "%Y-%m-%d").date()
 
     census = 0
     survey = 0
 
     for i in range(lt.size(todos)):
         registro = lt.get_element(todos, i)
-
-        # Validar que el estado coincida
         if registro['state_name'] != departamento:
             continue
-        # Obtener y validar el campo 'load_time'
-        load_time = registro.get('load_time')
 
+        load_time = registro['load_time']
         if isinstance(load_time, str):
-            try:
-                load_time = datetime.strptime(load_time.strip(), "%Y-%m-%d %H:%M:%S")
-            except ValueError:
-                continue
-
+            load_time = datetime.strptime(load_time.strip(), "%Y-%m-%d %H:%M:%S")
         if not isinstance(load_time, datetime):
             continue
 
-        # Comparar solo por la fecha (sin hora)
-        fecha_carga = load_time.date()
-        if INICIAL <= fecha_carga <= FINAL:
+        if fecha_ini <= load_time.date() <= fecha_fin:
             lt.add_last(registros, registro)
-
-            if registro.get('source') == "CENSUS":
+            if registro['source'] == 'CENSUS':
                 census += 1
-            elif registro.get('source') == "SURVEY":
+            elif registro['source'] == 'SURVEY':
                 survey += 1
 
-    # Ordenar por 'load_time' descendente y desempatar con 'state_name' ascendente
     registros_nativos = registros['elements']
-    mitad = len(registros_nativos) // 2
 
-    registros_ordenados = lt.merge_recursive(
-        registros_nativos[:mitad],
-        registros_nativos[mitad:],
+    # CORRECTO: Se llama merge_recursive_sort (que debes tener en tu TDA)
+    registros_ordenados = lt.merge_recursive_sort(
+        registros_nativos,
         key='load_time',
         descending=True,
         secondary_key='state_name'
@@ -545,6 +526,9 @@ def req_6(catalog, departamento, fecha_carga_inicial, fecha_carga_final):
     size = lt.size(registros)
 
     return tiempo_total, size, census, survey, registros
+
+
+
 
 
         
