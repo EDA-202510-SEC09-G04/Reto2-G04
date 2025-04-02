@@ -422,41 +422,40 @@ def find(catalogo,filtro,filtro2, filtro3):
 
 
 
-def req_1(catalog):
+def req_1(catalog,anio):
     """
     Requerimiento 1:
-    Retorna los 10 registros más recientes (por load_time) para un año específico de recolección.
+    Identifica el último registro cargado a la plataforma para un año de recolección específico.
     """
 
     tiempo_inicial = get_time()
-    registros = lt.new_list()
 
-    # Obtener todos los registros del mapa general
-    todos = msc.value_set(catalog['registros'])
+    # Obtener todos los registros (nativa)
+    todos = msc.value_set(catalog['registros'])['elements']
 
-    for i in range(lt.size(todos)):
-        registro = lt.get_element(todos, i)
+    # Filtrar por año de recolección
+    filtrados = [registro for registro in todos if int(registro['year_collection']) == anio]
 
-        if int(registro['year_collection']) == anio:
-            lt.add_last(registros, registro)
+    total = len(filtrados)
 
-    if lt.size(registros) == 0:
+    if total == 0:
         tiempo_final = get_time()
-        return lt.new_list(), 0, delta_time(tiempo_inicial, tiempo_final)
+        return [], 0, delta_time(tiempo_inicial, tiempo_final)
 
-    reg_list = registros['elements']
+    # Ordenar por load_time descendente
+    ordenados = lt.merge_recursive_sort(filtrados, key='load_time', descending=True)
 
-    # Ordenar de forma recursiva por 'load_time'
-    sorted_list = lt.merge_recursive_sort(reg_list, key='load_time', descending=True)
-    registros['elements'] = sorted_list
-
-    # Tomar los 10 primeros registros ordenados
-    top_10 = lt.new_list()
-    for i in range(min(10, len(sorted_list))):
-        lt.add_last(top_10, sorted_list[i])
+    # Tomar solo el más reciente
+    ultimo_registro = ordenados[0]
 
     tiempo_final = get_time()
-    return top_10, lt.size(top_10), delta_time(tiempo_inicial, tiempo_final)
+    return [ultimo_registro], total, delta_time(tiempo_inicial, tiempo_final)
+
+
+  
+
+
+
 
 
 
@@ -631,6 +630,9 @@ def req_6(catalog, departamento, fecha_carga_inicial, fecha_carga_final):
         size = lt.size(registros) """
 
     return tiempo_total, size, census, survey, registros
+
+
+
 
 
         
