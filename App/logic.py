@@ -327,8 +327,6 @@ def ultimos_registros_dep(catalog,n,departamento):
          
          primero = slist.first_element(el)
          
-        
-       
          if me.get_key(primero['info']) == departamento:
           
           valor = me.get_value(primero['info'])
@@ -352,7 +350,6 @@ def ultimos_registros_dep(catalog,n,departamento):
            
            
            
-           
 def find(catalogo,filtro,filtro2, filtro3):
     
  elementos = catalogo['por_producto']
@@ -371,9 +368,6 @@ def find(catalogo,filtro,filtro2, filtro3):
          
          pass
  
-
-                      
-                 
                  
                  
 #find(catalogo,'CHICKENS',1980,2000)
@@ -449,8 +443,8 @@ def req_3(catalog, departamento, inicial, final):
                 lt.add_last(registros, registro)
     #sort los registros finales por el load time
     
-    reg_list = registros['elements']
-    sorted_list = lt.merge_sort(reg_list, 'load_time', descending=False, secondary_key='commodity')
+    reg_list = registros['elements']  #segundo key es incoherente
+    sorted_list = lt.merge_sort(reg_list, 'load_time', descending=False, secondary_key='state_name')
     registros['elements'] = sorted_list
     
     size = registros['size']

@@ -74,12 +74,15 @@ def print_req_1(control):
 
 
 
-def print_req_2(control):
+def print_req_2(control, n , departamento):
     """
         Función que imprime la solución del Requerimiento 2 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 2
-    pass
+    dif_tiempo, size, registros = logic.req_2(control, n, departamento)
+    headers = ['source','year_collection','load_time','freq_collection','commodity','unit_measurement','value']
+    print('Total registros encontrados: ' + str(size))
+    print(f"\nTiempo de ejecución: {dif_tiempo:.6f} milisegundos")
+    print(format_table(registros, headers, max_col_width=12))
 
 
 def print_req_3(control, departamento, inicial, final):
@@ -243,7 +246,9 @@ def main():
             print_req_1(control)
 
         elif int(inputs) == 3:
-            print_req_2(control)
+            departamento = input('Ingrese el departamento que quiere consultar: ')
+            n = int(input('Ingrese el n que quiere consultar: '))
+            print_req_2(control, n, departamento)
 
         elif int(inputs) == 4:
             departamento = input('Ingrese el departamento que quiere consultar: ')
