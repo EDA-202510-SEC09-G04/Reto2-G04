@@ -94,7 +94,7 @@ def load_data(catalog):
     Carga los datos del reto
     """
     tiempo_inicial = get_time()
-    files = data_dir + 'agricultural-20.csv'
+    files = data_dir + 'agricultural-100.csv'
     
     #GENERACION DE TABLA DE HASH GENERAL
     input_file = csv.DictReader(open(files, encoding='utf-8'))
@@ -358,6 +358,7 @@ def find(catalogo,tipo_mapa,filtro,filtro2, filtro3):
  
  
  productos = msc.get(elementos,filtro)
+
  filtrado_año = None
  survey_count = 0 
  census_count = 0 
@@ -367,11 +368,13 @@ def find(catalogo,tipo_mapa,filtro,filtro2, filtro3):
  
  for i in range(filtro2,filtro3+1):
      
-     
+  
      filtrado_año =msc.get(productos,i)
-     num_resultados += len(filtrado_año)
      
-     for j in filtrado_año:
+     if filtrado_año is not None:
+      num_resultados += len(filtrado_año)
+     
+      for j in filtrado_año:
          
          if msc.contains(mapa,j['load_time']):
             msc.get(mapa,j['load_time']).append(j)
@@ -399,6 +402,7 @@ def find(catalogo,tipo_mapa,filtro,filtro2, filtro3):
  
  resultados = primeros_cinco + ultimos_cinco
  
+ print(resultados)
  for i in resultados:
      
      nuevo_dato ={}
@@ -459,8 +463,6 @@ def req_1(catalog,anio):
 
 
 
-
-   
 
 
    
@@ -539,7 +541,8 @@ def req_5(catalog,categoria,año_inicial,año_final):
     delta_time = tiempo_final- tiempo_inicial
     return delta_time, resultado, survey, census , num_results
 
-    
+
+
 
 
 

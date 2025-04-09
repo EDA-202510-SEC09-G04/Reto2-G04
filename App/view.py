@@ -139,7 +139,7 @@ def print_req_5(control):
     año_inicial_input = int(input('Ingresar Año inicial del periodo a consultar (con formato "YYYY ", ej.: “2007”): '))
     año_final_input = int(input('Ingresar Año final del periodo a consultar (con formato "YYYY", ej.: “2010”): '))
     
-    tiempo_eject,resultado,survey,census,num_results= logic.req_4(control,producto_input,año_inicial_input,año_final_input)
+    tiempo_eject,resultado,survey,census,num_results= logic.req_5(control,producto_input,año_inicial_input,año_final_input)
     headers = ['year_collection', 'load_time', 'state_name', 'source', 'unit_measurement', 'value']
     
    
