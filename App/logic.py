@@ -402,7 +402,7 @@ def find(catalogo,tipo_mapa,filtro,filtro2, filtro3):
  
  resultados = primeros_cinco + ultimos_cinco
  
- print(resultados)
+ 
  for i in resultados:
      
      nuevo_dato ={}
@@ -523,7 +523,6 @@ def req_4(catalog,producto,año_inicial,año_final):
     
     delta_time = tiempo_final- tiempo_inicial
     return delta_time, resultado, survey, census , num_results
-
 
 
 
